@@ -301,7 +301,7 @@ class Forum:
             return self.portal(host, paras, flat, links, ts, rec)
         if path == "/info":
             return self.info_page(host, query.get("page", "info"), flat, ts, rec)
-        if path in ("/rlz", "/vc", "/bd", "/news"):
+        if path in ("/rlz", "/vc", "/news"):  # /bd (birthdays) is left out on purpose
             return self.extra(host, path[1:], flat, ts, rec)
 
     def forum_list(self, host, old, paras, ts):
