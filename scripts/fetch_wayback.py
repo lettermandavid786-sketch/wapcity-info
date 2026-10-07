@@ -67,8 +67,11 @@ def http_get(url, retries=5, timeout=90):
         except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
             if attempt == retries - 1:
                 raise
-            log(f"  {e}, retry in {delay}s")
-            time.sleep(delay)
+            # Over ~15 requests/minute Wayback stops accepting connections for a
+            # minute or two; short retries only extend the block.
+            wait = 60 if "refused" in str(e) or "timed out" in str(e) else delay
+            log(f"  {e}, retry in {wait}s")
+            time.sleep(wait)
         delay *= 2
 
 
@@ -150,7 +153,8 @@ def main():
     ap.add_argument("--assets", action="store_true", help="also download images/css")
     ap.add_argument("--redirects", action="store_true", help="also keep 3xx captures")
     ap.add_argument("--limit", type=int, default=0, help="stop after N downloads (testing)")
-    ap.add_argument("--delay", type=float, default=1.5, help="seconds between downloads")
+    ap.add_argument("--delay", type=float, default=4.5,
+                    help="seconds between downloads (Wayback allows ~15 requests/minute)")
     ap.add_argument("--wayback-base", default="https://web.archive.org")
     ap.add_argument("--cdx-only", action="store_true", help="only fetch the index, download nothing")
     ap.add_argument("--refresh-cdx", action="store_true", help="re-query the index even if archive/cdx/ has it")
