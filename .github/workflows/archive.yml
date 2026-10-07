@@ -46,7 +46,7 @@ jobs:
         run: |
           python3 scripts/fetch_wayback.py --cdx-only \
             --domain forum.wapcity.ru \
-            --versions "${{ inputs.versions || '3' }}" \
+            --versions "${{ inputs.versions || '3' }}" --assets \
             ${{ inputs.refresh_cdx && '--refresh-cdx' || '' }}
           cat archive/sources.json
 
@@ -56,13 +56,14 @@ jobs:
           git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
           python3 scripts/build_site.py --archive archive --out docs
           git add archive docs
-          git diff --cached --quiet || { git commit -m "Wayback index for forum.wapcity.ru"; git push; }
+          git diff --cached --quiet || { git commit -m "Wayback index for forum.wapcity.ru"; git pull --rebase -X theirs; git push; }
 
       - name: Fetch pages
         run: |
           python3 scripts/fetch_wayback.py \
             --domain forum.wapcity.ru \
             --versions "${{ inputs.versions || '3' }}" \
+            --assets \
             --max-minutes 40
 
       - name: Build site
@@ -76,6 +77,7 @@ jobs:
           else
             n=$(python3 -c "import json;d=json.load(open('archive/sources.json'));print(d.get('downloaded',0),'/',d.get('selected',0))")
             git commit -m "Archive update: $n captures"
+            git pull --rebase -X theirs
             git push
           fi
 

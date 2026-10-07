@@ -73,6 +73,21 @@ def decode(body, content_type=""):
 
 # ---------------------------------------------------------------- URLs
 
+def clean_path(path):
+    """Path with session noise removed. forum.wapcity.ru (a JSP engine) keeps
+    the session in the path: ;jsessionid=..., /uk/<token> (user key), and
+    profile/photo links carry a /frm/<return path> that only sets the back link."""
+    path = re.sub(r"/{2,}", "/", path or "/")
+    path = re.sub(r";(jsessionid|phpsessid|sid)=[^/?]*", "", path, flags=re.I)
+    path = re.sub(r"/uk/[^/]+", "", path)
+    if re.match(r"/(user|oldu|foto|u)/", path):
+        path = re.sub(r"/frm(/.*?)?(?=/a/s$|$)", "", path)
+    path = re.sub(r"/index\.(php|html?|wml|cgi|pl|jsp)$", "/", path, flags=re.I)
+    if len(path) > 1:
+        path = path.rstrip("/")
+    return path or "/"
+
+
 def normalize(url):
     try:
         p = urlsplit(url.strip())
@@ -81,10 +96,7 @@ def normalize(url):
     host = (p.hostname or "").lower()
     if host.startswith("www."):
         host = host[4:]
-    path = p.path or "/"
-    path = re.sub(r"/{2,}", "/", path)
-    path = re.sub(r"/index\.(php|html?|wml|cgi|pl)$", "/", path, flags=re.I)
-    path = re.sub(r";(jsessionid|phpsessid|sid)=[^/?]*", "", path, flags=re.I)
+    path = clean_path(p.path)
     q = [(k, v) for k, v in parse_qsl(p.query, keep_blank_values=True) if k.lower() not in SESSION_PARAMS]
     q.sort()
     return urlunsplit(("http", host, path, urlencode(q), ""))
@@ -365,42 +377,75 @@ class Rewriter(HTMLParser):
 
 # ---------------------------------------------------------------- classification
 
-TYPE_RULES = [
+# URL layout of the forum.wapcity.ru engine (checked against the Wayback index)
+WAPCITY_RULES = [
+    ("home", re.compile(r"^/(index\.(jsp|html?))?$")),
+    ("forums", re.compile(r"^/(old)?f$")),
+    ("forum", re.compile(r"^/(old)?t/f/\d+")),
+    ("topic", re.compile(r"^/(old)?m/f/\d+/t/\d+")),
+    ("user", re.compile(r"^/(user|oldu)/id/\d+")),
+    ("photo", re.compile(r"^/foto/")),
+    ("news", re.compile(r"^/news")),
+    ("files", re.compile(r"^/(ringpix|djpix|mmsbox|mtm|mbox)")),
+    ("service", re.compile(r"^/(auth|singin|singup|info|rlz|vc|bd|online|search)")),
+]
+GENERIC_RULES = [
     ("topic", re.compile(r"(topic|thread|tema|theme|showtopic|viewtopic|read|post|msg|message)", re.I),
      {"t", "tid", "topic", "thread", "showtopic", "tema", "post", "p", "msg", "mid"}),
     ("forum", re.compile(r"(forum|razdel|board|cat|section|showforum|viewforum)", re.I),
      {"f", "fid", "forum", "showforum", "cat", "c", "razdel", "board", "r"}),
-    ("user", re.compile(r"(user|profile|member|anketa|nick|people|info)", re.I),
+    ("user", re.compile(r"(user|profile|member|anketa|nick|people)", re.I),
      {"u", "uid", "user", "member", "profile", "nick", "login", "who"}),
     ("chat", re.compile(r"(chat|room|guest|gb)", re.I), {"room"}),
-    ("files", re.compile(r"(down|load|file|zip|mp3|mid|pic|img|foto|photo|logo|melod|ring|game|java)", re.I),
+    ("files", re.compile(r"(down|load|file|zip|mp3|mid|pic|img|photo|logo|melod|ring|game|java)", re.I),
      set()),
 ]
-TYPE_LABELS = {"home": "Главная", "forum": "Раздел", "topic": "Тема", "user": "Пользователь",
-               "chat": "Чат/гостевая", "files": "Файлы", "other": "Прочее"}
+TYPE_LABELS = {"home": "Главная", "forums": "Список форумов", "forum": "Форум (темы)", "topic": "Тема",
+               "user": "Пользователь", "photo": "Фото", "news": "Новости", "chat": "Чат/гостевая",
+               "files": "Файлы и сервисы", "service": "Служебные", "other": "Прочее"}
 
 
 def classify(url):
     p = urlsplit(url)
-    path = p.path or "/"
+    path = clean_path(p.path)
     keys = {k.lower() for k, _ in parse_qsl(p.query, keep_blank_values=True)} - SESSION_PARAMS
-    if re.fullmatch(r"/(index\.\w+)?", path) and not keys:
-        return "home"
-    for name, path_re, qkeys in TYPE_RULES:
+    for name, path_re in WAPCITY_RULES:
+        if path_re.search(path):
+            return name
+    for name, path_re, qkeys in GENERIC_RULES:
         if keys & qkeys and (path_re.search(path) or name in ("topic", "forum", "user")):
             return name
-    for name, path_re, _ in TYPE_RULES:
+    for name, path_re, _ in GENERIC_RULES:
         if path_re.search(path):
             return name
     return "other"
 
 
+def describe(url):
+    """Human label from path ids: /m/f/9/t/118/page/16 → форум 9 · тема 118 · стр. 16."""
+    path = clean_path(urlsplit(url).path)
+    names = {"f": "форум", "t": "тема", "page": "стр.", "id": "id", "p": "часть", "tp": "стр.", "u": "польз."}
+    parts = [f"{names[k]} {v}" for k, v in re.findall(r"/(f|t|page|id|p|tp|u)/(\d+)", path)]
+    return " · ".join(parts)
+
+
 def section_of(url):
-    """Host plus path segments; the query's parameter names form a last level
-    (index.php → ?f / ?t), which is how WAP forums of the era split sections."""
+    """Host plus a short path; numeric ids stay with their key (f 9, t 118) so
+    the site map reads host → m → f 9 → t 118. Query keys form a last level."""
     p = urlsplit(url)
-    host = (p.hostname or "").lower()
-    segs = [s for s in (p.path or "/").split("/") if s][:3]
+    host = re.sub(r"^www\.", "", (p.hostname or "").lower())
+    toks = [t for t in clean_path(p.path).split("/") if t]
+    segs, i = [], 0
+    while i < len(toks):
+        if i + 1 < len(toks) and toks[i + 1].isdigit() and not toks[i].isdigit():
+            if toks[i] not in ("page", "p", "p1", "tid", "tp"):
+                segs.append(f"{toks[i]} {toks[i + 1]}")
+            i += 2
+            continue
+        if not toks[i].isdigit():
+            segs.append(toks[i])
+        i += 1
+    segs = segs[:4]
     keys = sorted({k.lower() for k, _ in parse_qsl(p.query, keep_blank_values=True)} - SESSION_PARAMS)
     if keys:
         segs.append("?" + "&".join(keys[:3]))
@@ -526,7 +571,7 @@ def main():
         host, segs = section_of(rec["url"])
         index.append({
             "id": rec["id"], "ts": rec["timestamp"], "url": rec["url"], "n": normalize(rec["url"]),
-            "t": title[:200], "k": kind, "h": host, "s": segs, "fmt": "wml" if is_wml else "html",
+            "t": title[:200], "k": kind, "h": host, "s": segs, "d": describe(rec["url"]), "fmt": "wml" if is_wml else "html",
             "enc": enc, "sz": rec.get("size", len(body)), "sn": plain[:SNIPPET_LEN],
         })
         search[rec["id"]] = plain[:SEARCH_TEXT_LEN].lower()
@@ -554,7 +599,8 @@ def main():
     known_list = []
     for k, e in sorted(known.items()):
         loc = latest_local.get(k)
-        known_list.append({"u": e["u"], "c": e["c"], "f": e["f"], "l": e["l"],
+        h, sg = section_of(e["u"])
+        known_list.append({"u": e["u"], "c": e["c"], "f": e["f"], "l": e["l"], "h": h, "s": sg,
                            "st": ",".join(sorted(e["st"])), "id": loc["id"] if loc else None})
 
     per_month = Counter(r["timestamp"][:6] for r in cdx) if cdx else Counter(i["ts"][:6] for i in index)
