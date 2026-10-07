@@ -370,13 +370,17 @@ function viewHome() {
   html += '<div class="grid two"><div><h2>Рост числа анкет</h2><div class="card chart" id="chGrowth"><div class="tip"></div></div><p class="faint" style="font-size:12.5px;margin:6px 2px">Номер последней зарегистрированной анкеты на главной («Приветствуем новичков»), по снимкам старого движка.</p></div>' +
     '<div><h2>Рубрики в ' + (lastSectionsLabel() || "старом движке") + '</h2><div class="card"><div class="hbars" id="chSections"></div></div><p class="faint" style="font-size:12.5px;margin:6px 2px">Счётчик сообщений у каждой рубрики, как его показывал сайт.</p></div></div>';
 
-  // most discussed
-  var top = D.topics.slice().sort(function (a, b) { return b.count - a.count || b.found - a.found; }).slice(0, 10);
+  // topics: most preserved / longest on the site
+  var best = D.topics.filter(function (t) { return t.found; }).sort(function (a, b) { return b.found - a.found; }).slice(0, 10);
+  var longest = D.topics.slice().sort(function (a, b) { return b.count - a.count; }).slice(0, 10);
+  html += '<div class="grid two"><div><h2>Где сохранилось больше всего</h2><div class="card" style="padding:4px"><ul class="rows">' + best.map(topicRow).join("") + "</ul></div></div>" +
+    '<div><h2>Самые длинные темы</h2><div class="card" style="padding:4px"><ul class="rows">' + longest.map(topicRow).join("") + '</ul></div><p class="faint" style="font-size:12.5px;margin:6px 2px">Число сообщений — как его показывал сайт; в архив попали лишь отдельные страницы.</p></div></div>';
   var news = D.news.slice().sort(function (a, b) { return (b.date || "") < (a.date || "") ? -1 : 1; });
-  html += '<div class="grid two"><div><h2>Самые длинные темы</h2><div class="card" style="padding:4px"><ul class="rows">' + top.map(topicRow).join("") + "</ul></div></div>" +
-    "<div><h2>Новости сайта</h2><div class='card' style='padding:4px'><ul class='rows'>" + (news.length ? news.map(function (n) {
-      return '<li><a class="r" href="' + (n.src ? srcLink(n.src) : "#/") + '"><span class="tt">' + esc(n.title || "Новость " + n.id) + '</span><span class="sub"><span>' + esc(n.date ? n.date.split("-").reverse().join(".") : "") + "</span><span>" + esc(hostName(n.h)) + "</span>" + (n.text ? "<span>" + esc(n.text.slice(0, 90)) + "…</span>" : "") + "</span></a></li>";
-    }).join("") : '<li class="faint" style="padding:12px">не сохранились</li>') + "</ul></div>";
+  function newsRow(n) {
+    return '<li><a class="r" href="' + (n.src ? srcLink(n.src) : "#/") + '"><span class="tt">' + esc(n.title || "Новость " + n.id) + '</span><span class="sub"><span>' + esc(n.date ? n.date.split("-").reverse().join(".") : "") + "</span>" + (n.text ? "<span>" + esc(n.text.slice(0, 110)) + (n.text.length > 110 ? "…" : "") + "</span>" : "") + "</span></a></li>";
+  }
+  html += '<div class="grid two"><div><h2>Новости сайта</h2><div class="card" style="padding:4px"><ul class="rows">' + (news.length ? news.slice(0, 8).map(newsRow).join("") : '<li class="faint" style="padding:12px">не сохранились</li>') + "</ul>" +
+    (news.length > 8 ? '<details><summary class="faint" style="cursor:pointer;padding:8px 12px">ещё ' + (news.length - 8) + "</summary><ul class='rows'>" + news.slice(8).map(newsRow).join("") + "</ul></details>" : "") + "</div></div><div>";
   // service texts
   var texts = D.info.concat(D.extras).filter(function (i) { return i.text; });
   var seen = {}; texts = texts.filter(function (i) { var k = i.title; if (seen[k]) return false; seen[k] = 1; return true; });

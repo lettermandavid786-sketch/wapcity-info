@@ -29,6 +29,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_site import clean_path, decode, load_cdx, load_manifest  # noqa: E402
 
 TIME_RE = re.compile(r"\((\d{1,2}):(\d{2}):(\d{2})\s+(\d{2})\.(\d{2})\.(\d{4})\)\s*$")
+TIME_RE_OLD = re.compile(r"\((\d{2})\.(\d{2})\.(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\)\s*$")  # forum archive
+MOD_TAIL = re.compile(r"(\s*-?\s*(\[[^\]\n]{1,3}\]\s*)+)\s*$")  # moderator buttons [E][X][!]…
 DATE_RE = re.compile(r"(\d{1,2}):(\d{2}):(\d{2})\s+(\d{2})\.(\d{2})\.(\d{4})")
 COUNT_RE = re.compile(r"\s*\[(\d+)\]\s*$")
 PHONE_RE = re.compile(r"(?<!\d)(?:\+?[78]|\+?38)?[\s\-(]*9\d{2}[\s\-)]*\d{3}[\s\-]*\d{2}[\s\-]*\d{2}(?!\d)")
@@ -49,6 +51,12 @@ def log(*a):
 def iso(m):
     h, mi, s, d, mo, y = m.groups()
     return f"{y}-{mo}-{d} {int(h):02d}:{mi}:{s}"
+
+
+def canon(host):
+    """The subdomains (djuce., ncc., mts. …) are operator skins of one wapForum database:
+    forum, topic, user and news ids coincide, so their content is merged under one host."""
+    return "forum.wapcity.ru" if host.endswith("forum.wapcity.ru") else host
 
 
 def mask(text):
@@ -236,8 +244,8 @@ class Forum:
     def forum(self, host, old, fid, name=None, ts=None):
         f = self.forums.setdefault((host, old, fid), {"name": None, "topics": set(), "first": ts, "last": ts,
                                                       "seen": 0})
-        if name and not f["name"]:
-            f["name"] = name
+        if name and (not f["name"] or (ts or "") >= f.get("nameTs", "")):
+            f["name"], f["nameTs"] = name, ts or ""
         if ts:
             f["first"] = min(f["first"] or ts, ts)
             f["last"] = max(f["last"] or ts, ts)
@@ -281,6 +289,8 @@ class Forum:
         if kind:
             self.gallery.setdefault((kind, host, ts[:4]), {"id": rec["id"], "ts": ts, "host": host, "kind": kind})
 
+        site = host
+        host = canon(host)
         if re.fullmatch(r"/(old)?f", path):
             return self.forum_list(host, old, paras, ts)
         m = re.fullmatch(r"/(?:old)?t/f/(\d+)(?:/page/(\d+))?", path)
@@ -296,11 +306,11 @@ class Forum:
         if m:
             return self.news_item(host, int(m.group(1)), paras, flat, ts, rec)
         if path == "/auth":
-            return self.sections_page(host, paras, flat, ts)
+            return self.sections_page(site, paras, flat, ts)
         if path in ("/index.jsp", "/", "/index.html") or path.startswith("/index.html/l/"):
-            return self.portal(host, paras, flat, links, ts, rec)
+            return self.portal(site, paras, flat, links, ts, rec)
         if path == "/info":
-            return self.info_page(host, query.get("page", "info"), flat, ts, rec)
+            return self.info_page(site, query.get("page", "info"), flat, ts, rec)
         if path in ("/rlz", "/vc", "/news"):  # /bd (birthdays) is left out on purpose
             return self.extra(host, path[1:], flat, ts, rec)
 
@@ -326,7 +336,7 @@ class Forum:
                     if i[0] == "a":
                         m = re.search(r"/(?:user|oldu)/id/(\d+)", i[1])
                         if m:
-                            self.moderators[(host, fid)][int(m.group(1))] = i[2].rstrip(",")
+                            self.moderators[(host, old, fid)][int(m.group(1))] = i[2].rstrip(",")
                 continue
             for idx, i in enumerate(para):
                 if i[0] != "a":
@@ -373,8 +383,14 @@ class Forum:
             nick = para[ui][2]
             body = "".join(j[1] if j[0] == "t" else j[2] for j in para[ui + 1:])
             body = re.sub(r"[ \t ]+", " ", body).strip()
+            body = MOD_TAIL.sub("", body).rstrip(" -\n")
             tm = TIME_RE.search(body)
             at = iso(tm) if tm else None
+            if not tm:
+                tm = TIME_RE_OLD.search(body)
+                if tm:
+                    d, mo, y, h, mi, sec = tm.groups()
+                    at = f"{y}-{mo}-{d} {int(h):02d}:{mi}:{sec}"
             if tm:
                 body = body[:tm.start()].strip()
             body = re.sub(r"\n\s*\n+", "\n", body).strip()
@@ -461,7 +477,7 @@ class Forum:
                         last_date = f"{d.group(3)}-{d.group(2)}-{d.group(1)}"
                 elif "/news/id/" in i[1]:
                     m = re.search(r"/news/id/(\d+)", i[1])
-                    n = self.news.setdefault((host, int(m.group(1))), {"title": None, "date": None, "text": "",
+                    n = self.news.setdefault((canon(host), int(m.group(1))), {"title": None, "date": None, "text": "",
                                                                        "src": None, "ts": ts})
                     n["title"] = n["title"] or i[2]
                     n["date"] = n["date"] or last_date
@@ -499,7 +515,18 @@ class Forum:
                 out.append({**v, "label": labels[kind]})
         return out
 
+    def news_clean(self):
+        """A news page sometimes shows another item than its id (the snapshot of a
+        neighbouring id): keep the text only when its leading date matches the item."""
+        for n in self.news.values():
+            m = re.match(r"(\d{2})\.(\d{2})\.(\d{4})", n["text"] or "")
+            if m and n["date"] and f"{m.group(3)}-{m.group(2)}-{m.group(1)}" != n["date"]:
+                n["text"] = ""
+            elif m:
+                n["text"] = n["text"][m.end():].strip()
+
     def export(self, cdx_rows):
+        self.news_clean()
         topics = []
         tkey = {}
         for (host, old, fid, tid), t in sorted(self.topics.items()):
@@ -517,7 +544,7 @@ class Forum:
         for (host, old, fid), f in sorted(self.forums.items(), key=lambda kv: (kv[0][0], kv[0][1], kv[0][2])):
             forums.append({"h": host, "o": old, "f": fid, "name": f["name"] or f"Форум {fid}",
                            "topics": len(f["topics"]), "first": f["first"], "last": f["last"],
-                           "mods": sorted(self.moderators.get((host, fid), {}).values())})
+                           "mods": sorted(self.moderators.get((host, old, fid), {}).values())})
         users = []
         for (host, uid), u in sorted(self.users.items()):
             users.append({"h": host, "id": uid, "nick": u["nick"] or f"#{uid}",
