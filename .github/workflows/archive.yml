@@ -1,0 +1,73 @@
+# Crawls forum.wapcity.ru from the Wayback Machine, rebuilds the browsable
+# site in docs/ and commits both back. Long crawls are split into runs that
+# each stop before GitHub's job time limit and re-dispatch the workflow until
+# every selected capture is downloaded (downloads resume from the manifest).
+name: Archive forum.wapcity.ru
+
+on:
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: "Versions per URL: 1 = latest, N = spread over time, 0 = all"
+        default: "3"
+      refresh_cdx:
+        description: "Re-query the Wayback index"
+        type: boolean
+        default: false
+  push:
+    branches: [claude/wapcity-forum-archive-eh7ezm]
+    paths:
+      - "scripts/**"
+      - ".github/workflows/archive.yml"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: archive-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch from Wayback Machine
+        run: |
+          python3 scripts/fetch_wayback.py \
+            --domain forum.wapcity.ru \
+            --versions "${{ inputs.versions || '3' }}" \
+            --max-minutes 300 \
+            ${{ inputs.refresh_cdx && '--refresh-cdx' || '' }}
+
+      - name: Build site
+        run: python3 scripts/build_site.py --archive archive --out docs
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add archive docs
+          if git diff --cached --quiet; then
+            echo "nothing new"
+          else
+            n=$(python3 -c "import json;d=json.load(open('archive/sources.json'));print(d.get('downloaded',0),'/',d.get('selected',0))")
+            git commit -m "Archive update: $n captures"
+            git push
+          fi
+
+      - name: Continue if incomplete
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          complete=$(python3 -c "import json;print(json.load(open('archive/sources.json')).get('complete'))")
+          if [ "$complete" != "True" ]; then
+            gh workflow run archive.yml --ref "${GITHUB_REF_NAME}" -f versions="${{ inputs.versions || '3' }}"
+          fi

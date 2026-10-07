@@ -1,0 +1,1 @@
+window.WC_DATA={"title":"forum.wapcity.ru","pages":[],"known":[],"perMonth":[],"types":{"home":"Главная","forum":"Раздел","topic":"Тема","user":"Пользователь","chat":"Чат/гостевая","files":"Файлы","other":"Прочее"},"sources":{},"cdxTotal":0};
