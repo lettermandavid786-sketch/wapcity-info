@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">
+<wml>
+<card id="index" title="wapForum">
+<p align="center"><img src="/i/astra_lg.gif" alt="*" style="" align="center"/></p>
+<head>
+  <title>wapForum</title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+  <link href="/xhtml/dj/main.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<table class="hd">
+  <tr>
+    <td class="hd_l"><img src="/i/dj_lg.gif" alt="*" style="display:block;" /></td>
+    <td class="hd_r"></td>
+  </tr>
+</table>
+<div class="os5"/><p>&#1055;&#1086;&#1079;&#1076;&#1088;&#1072;&#1074;&#1083;&#1103;&#1077;&#1084; &#1089; &#1076;&#1085;&#1077;&#1084; &#1088;&#1086;&#1078;&#1076;&#1077;&#1085;&#1080;&#1103;!!!</p>
+<p>
+  &#1057;&#1077;&#1075;&#1086;&#1076;&#1085;&#1103; &#1085;&#1077;&#1090; &#1080;&#1084;&#1077;&#1085;&#1080;&#1085;&#1085;&#1080;&#1082;&#1086;&#1074;</p>
+<p>
+  <a href="/index.html">:&#1085;&#1072; &#1075;&#1083;&#1072;&#1074;&#1085;&#1091;&#1102;</a><br/>
+  <a href="http://wap.djuice.com.ua/">:&#1043;&#1083;&#1072;&#1074;&#1085;&#1086;&#1077; &#1084;&#1077;&#1085;&#1102;</a>
+</p>
+</card>
+</wml>

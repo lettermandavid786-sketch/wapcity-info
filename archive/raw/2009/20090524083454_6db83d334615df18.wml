@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">
+<wml>
+  <card id="index" title="MMS-Открытки">
+    <p align="center"><img src="/mmsbox/images/djlogo.gif;jsessionid=77CFDF09A8869E0BEAF3FF8A4346454C" alt="DJUICE" /></p>
+    <p align="center">Доступ закрыт</p>
+   <p align="left"><small>Этот раздел доступен только абонентам Киевстар, Ace&amp;Base, DJUICE.<br/>Если Вы являетесь абонентом Киевстар, Ace&amp;Base или DJUICE и видите это сообщение, проверьте в мобильном телефоне настройки WAP доступа.<br/>Для получения детальной информации звоните по номеру 466 (с мобильного в сети "Киевстар" звонок не оплачивается).</small></p>
+ <p>
+      The requested resource (/mmsbox/tiles/djuice/wap/navigation) is not available
+      &#160;<a href="/mmsbox/l/ru;jsessionid=77CFDF09A8869E0BEAF3FF8A4346454C">:MMS-Открытки</a><br/>
+      &#160;<a href="http://wap.djuice.com.ua/">:Главное меню</a><br/>
+      
+      &#160;<a href="/mmsbox/l/uk;jsessionid=77CFDF09A8869E0BEAF3FF8A4346454C">:Українською</a><br/>
+    </p>
+    <p>
+      <img alt=""
+           src="http://stat.alfait.info/pphlogger.php?id=mmsbox&amp;st=img&amp;referer=&amp;b=848663decf98a33c5d7c549064eca4b8"/>
+    </p>
+  </card>
+</wml>

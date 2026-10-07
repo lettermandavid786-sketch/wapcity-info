@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">
+<wml>
+<card id="index" title="MMS-Листівки">
+ <p align="center">Доступ закритий</p>
+   <p align="left"><small> Цей розділ доступний тільки абонентам Київстар, Ace&amp;Base, DJUICE.<br/>Якщо Ви є абонентом Київстар, Ace&amp;Base або DJUICE і бачите це повідомлення, перевірте в мобільному телефоні налаштування WAP доступу.<br/>Для отримання детальної інформації дзвоніть на номер 466 (з мобільного в мережі "Київстар" дзвінок не оплачується).</small></p>
+ <p>
+   <img src="/mmsp/images/dot3.gif;jsessionid=B45ABB271AC96C420298F1773B946ABB" height="8" width="3" alt="*" />&#160;
+   <a href="http://wap.starport.com.ua/">Назад</a><br/>
+   <img src="/mmsp/images/dot3.gif;jsessionid=B45ABB271AC96C420298F1773B946ABB" height="8" width="3" alt="*" />&#160;
+   <a href="http://wap.starport.com.ua/ru/">Головна</a><br/>
+   <img src="/mmsp/images/dot3.gif;jsessionid=B45ABB271AC96C420298F1773B946ABB" height="8" width="3" alt="*" />&#160;
+   <a href="http://wap.starport.com.ua/ru/my/">Моя картка</a><br/>
+   <img src="/mmsp/images/dot3.gif;jsessionid=B45ABB271AC96C420298F1773B946ABB" height="8" width="3" alt="*" />&#160;<a href="/mmsp/l/ru;jsessionid=B45ABB271AC96C420298F1773B946ABB">Російською</a></p>
+  <p><img alt="" src="http://stat.alfait.info/pphlogger.php?id=mmsbox&amp;st=img&amp;referer=&amp;b=7924bed74db1896cee3203b5a40ea06c"/></p>
+</card>
+</wml>

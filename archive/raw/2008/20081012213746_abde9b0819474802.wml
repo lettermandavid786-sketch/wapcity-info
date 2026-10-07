@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">
+<wml>
+<card id="index" title="wapForum">
+<p align="center"><img src="/i/lg.gif" alt="*" align="center"/></p><p>&#1055;&#1086;&#1082;&#1086;&#1083;&#1077;&#1085;&#1080;&#1077; NEXT</p>
+<p>&#1058;&#1077;&#1084; &#1074; &#1076;&#1072;&#1085;&#1085;&#1086;&#1084; &#1092;&#1086;&#1088;&#1091;&#1084;&#1077; &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085;&#1085;&#1086;<br/>
+</p>
+<p>
+  <a href="/oldf">&#1085;&#1072;&#1079;&#1072;&#1076;</a><br/>
+  <a href="/index.html">&#1085;&#1072; &#1075;&#1083;&#1072;&#1074;&#1085;&#1091;&#1102;</a><br/>
+  <a href="http://wapcity.ru">WapCity.ru</a>
+</p>
+</card>
+</wml>

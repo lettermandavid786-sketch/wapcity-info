@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">
+<wml>
+<card id="index" title="wapForum">
+<p align="center"><img src="/i/astra_lg.gif" alt="*" style="" align="center"/></p>
+<head>
+  <title>wapForum</title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+  <link href="/xhtml/dj/main.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<table class="hd">
+  <tr>
+    <td class="hd_l"><img src="/i/dj_lg.gif" alt="*" style="display:block;" /></td>
+    <td class="hd_r"></td>
+  </tr>
+</table>
+<div class="os5"/><p>&#1084;&#1086;&#1103; &#1087;&#1086;&#1095;&#1090;&#1072;</p>
+<p>&#1057;&#1086;&#1086;&#1073;&#1097;&#1077;&#1085;&#1080;&#1081; &#1074; &#1087;&#1086;&#1095;&#1090;&#1086;&#1074;&#1086;&#1084; &#1103;&#1097;&#1080;&#1082;&#1077; &#1085;&#1077; &#1085;&#1072;&#1081;&#1076;&#1077;&#1085;&#1085;&#1086;<br/>
+</p>
+<p>
+&#1054;&#1090;&#1074;&#1077;&#1090;&#1080;&#1090;&#1100;&#160;
+&#1087;&#1086;&#1083;&#1100;&#1079;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1102;:<br/>&#1085;&#1077; &#1079;&#1072;&#1076;&#1072;&#1085;&#1085;&#1086;<br/>
+    <input type="text" name="text"/><br/> 
+    <input type="hidden" name="tid" value=""/>
+</p>
+
+    <p>
+  <anchor
+      title="&#1054;&#1090;&#1087;&#1088;&#1072;&#1074;&#1080;&#1090;&#1100;">&#1054;&#1090;&#1087;&#1088;&#1072;&#1074;&#1080;&#1090;&#1100;<go href="/mbox/a/s/uk/ZTdkNTg1MGE2NTAxMjU0ZDA0MDQxN2M5MDI3YTRmNmM=:28780" method="GET">
+      <postfield name="text" value="$text"/>
+      <postfield name="tid" value="$tid"/>
+    </go>
+  </anchor>
+</p>
+<p>
+  <a href="/f/uk/ZTdkNTg1MGE2NTAxMjU0ZDA0MDQxN2M5MDI3YTRmNmM=:28780">:&#1085;&#1072;&#1079;&#1072;&#1076;</a><br/>
+  <a href="/index.html/uk/ZTdkNTg1MGE2NTAxMjU0ZDA0MDQxN2M5MDI3YTRmNmM=:28780">:&#1085;&#1072; &#1075;&#1083;&#1072;&#1074;&#1085;&#1091;&#1102;</a><br/>
+  <a href="http://wap.djuice.com.ua/">:&#1043;&#1083;&#1072;&#1074;&#1085;&#1086;&#1077; &#1084;&#1077;&#1085;&#1102;</a>
+</p>
+</card>
+</wml>

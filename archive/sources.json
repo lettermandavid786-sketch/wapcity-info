@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-10-07T14:43:05+00:00",
+  "fetchedAt": "2026-10-07T15:59:50+00:00",
   "versionsPerUrl": 3,
   "selected": 703,
   "complete": false,
@@ -14,7 +14,7 @@
       "last": "20250123162839"
     }
   ],
-  "downloaded": 109,
-  "missingInWayback": 0,
-  "remaining": 594
+  "downloaded": 699,
+  "missingInWayback": 1,
+  "remaining": 3
 }
