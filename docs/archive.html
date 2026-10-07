@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Исходные страницы wapForum</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f3ef;
+  --surface: #fcfcfb;
+  --surface-2: #efeee9;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #85847e;
+  --line: #dddcd5;
+  --accent: #2a78d6;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3eefb;
+  --bar: #2a78d6;
+  --bar-hover: #1b5aa6;
+  --phone: #2b2b29;
+  --shadow: 0 1px 2px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.05);
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121211;
+    --surface: #1a1a19;
+    --surface-2: #232321;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #8e8d85;
+    --line: #34332f;
+    --accent: #3987e5;
+    --accent-ink: #ffffff;
+    --accent-soft: #1d2b3d;
+    --bar: #3987e5;
+    --bar-hover: #77aef0;
+    --phone: #050505;
+    --shadow: 0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121211;
+  --surface: #1a1a19;
+  --surface-2: #232321;
+  --ink: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #8e8d85;
+  --line: #34332f;
+  --accent: #3987e5;
+  --accent-ink: #ffffff;
+  --accent-soft: #1d2b3d;
+  --bar: #3987e5;
+  --bar-hover: #77aef0;
+  --phone: #050505;
+  --shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--sans); }
+a { color: var(--accent); }
+button, input, select { font: inherit; color: inherit; }
+.mono { font-family: var(--mono); }
+.muted { color: var(--ink-2); }
+.faint { color: var(--ink-3); }
+
+/* header */
+header.top { display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.brand b { font-size: 17px; letter-spacing: -.01em; }
+.brand .tag { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+nav.tabs { display: flex; gap: 2px; flex-wrap: wrap; }
+nav.tabs a { padding: 6px 12px; border-radius: 8px; text-decoration: none; color: var(--ink-2); }
+nav.tabs a:hover { background: var(--surface-2); color: var(--ink); }
+nav.tabs a.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.spacer { flex: 1; }
+.icon-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 5px 9px; cursor: pointer; line-height: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 30px; }
+.icon-btn:hover:not(:disabled) { background: var(--surface-2); }
+.icon-btn:disabled { opacity: .4; cursor: default; }
+
+main.view { display: none; }
+main.view.on { display: block; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 20px 16px 48px; }
+h1 { font-size: 26px; margin: 4px 0 4px; letter-spacing: -.02em; }
+h2 { font-size: 17px; margin: 28px 0 10px; }
+.lede { color: var(--ink-2); max-width: 760px; margin: 0 0 18px; }
+
+/* cards & KPI */
+.grid { display: grid; gap: 12px; }
+.kpis { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); }
+.kpi .v { font-size: 26px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kpi .l { color: var(--ink-2); font-size: 13px; }
+.two { grid-template-columns: 1.4fr 1fr; }
+@media (max-width: 860px) { .two { grid-template-columns: 1fr; } }
+
+/* chart */
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: 220px; overflow: visible; }
+.chart .axis text { fill: var(--ink-3); font-size: 11px; }
+.chart .grid-line { stroke: var(--line); stroke-width: 1; }
+.chart .bar { fill: var(--bar); }
+.chart .hit { fill: transparent; cursor: pointer; }
+.chart .hit:hover + .bar, .chart g.on .bar { fill: var(--bar-hover); }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); padding: 6px 9px; border-radius: 6px; font-size: 12px; white-space: nowrap; transform: translate(-50%, -100%); margin-top: -8px; display: none; z-index: 3; }
+.hbars { display: grid; gap: 6px; }
+.hbar { display: grid; grid-template-columns: 120px 1fr 52px; align-items: center; gap: 8px; cursor: pointer; border-radius: 6px; padding: 2px 4px; }
+.hbar:hover { background: var(--surface-2); }
+.hbar .track { height: 10px; border-radius: 0 4px 4px 0; background: var(--bar); min-width: 2px; }
+.hbar .n { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+
+/* lists */
+.plist { list-style: none; margin: 0; padding: 0; }
+.plist li { border-bottom: 1px solid var(--line); }
+.plist li:last-child { border-bottom: 0; }
+.plist a.row { display: block; padding: 8px 10px; text-decoration: none; color: inherit; border-radius: 8px; }
+.plist a.row:hover { background: var(--surface-2); }
+.plist a.row.cur { background: var(--accent-soft); }
+.row .t { font-weight: 560; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.row .m { font-size: 12px; color: var(--ink-3); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.row .u { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .sn { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.badge { display: inline-block; font-size: 11px; padding: 0 7px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
+mark { background: #ffe58a; color: #111; border-radius: 2px; }
+
+/* navigator */
+.nav-layout { display: grid; grid-template-columns: 360px 1fr; height: calc(100vh - 53px); }
+.side { border-right: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; min-height: 0; }
+.filters { padding: 12px; border-bottom: 1px solid var(--line); display: grid; gap: 8px; }
+.filters .r { display: flex; gap: 6px; flex-wrap: wrap; }
+.filters select, .filters input[type=search] { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+.filters input[type=search] { width: 100%; }
+.filters select { flex: 1; }
+.filters label.chk { display: inline-flex; gap: 5px; align-items: center; font-size: 13px; color: var(--ink-2); }
+.count { font-size: 12px; color: var(--ink-3); padding: 6px 14px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; }
+.scroll { overflow: auto; min-height: 0; flex: 1; padding: 4px; }
+.more { display: block; width: calc(100% - 16px); margin: 8px; padding: 8px; border: 1px dashed var(--line); background: none; border-radius: 8px; cursor: pointer; color: var(--ink-2); }
+.viewer { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.vbar { display: flex; gap: 6px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface); flex-wrap: wrap; }
+.vbar .addr { flex: 1; min-width: 160px; font-family: var(--mono); font-size: 12px; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 6px 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vbar select { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 5px 6px; max-width: 220px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 5px 10px; cursor: pointer; }
+.seg button.on { background: var(--accent); color: var(--accent-ink); }
+.stage { flex: 1; min-height: 0; overflow: auto; background: var(--surface-2); display: flex; justify-content: center; align-items: flex-start; }
+.stage iframe { border: 0; background: var(--surface); width: 100%; height: 100%; display: block; }
+.stage.phone { padding: 24px 12px; }
+.stage.phone .device { width: 300px; height: min(620px, calc(100% - 8px)); border: 12px solid var(--phone); border-width: 34px 12px 44px; border-radius: 28px; box-shadow: var(--shadow); background: var(--phone); overflow: hidden; flex: none; }
+.stage:not(.phone) .device { width: 100%; height: 100%; }
+.empty-v { margin: auto; text-align: center; color: var(--ink-3); padding: 40px 20px; max-width: 420px; }
+.meta-line { font-size: 12px; color: var(--ink-2); padding: 6px 12px; border-bottom: 1px solid var(--line); background: var(--surface); display: flex; gap: 14px; flex-wrap: wrap; }
+.only-mobile { display: none; }
+@media (max-width: 820px) {
+  header.top { gap: 8px; padding: 8px 12px; }
+  nav.tabs { order: 3; width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  nav.tabs a { white-space: nowrap; padding: 5px 10px; }
+  .nav-layout { grid-template-columns: 1fr; height: auto; min-height: calc(100vh - 90px); }
+  .side { height: auto; max-height: none; border-right: 0; }
+  .nav-layout.viewing .side { display: none; }
+  .nav-layout:not(.viewing) .viewer { display: none; }
+  .viewer { height: calc(100vh - 90px); }
+  .only-mobile { display: inline-block; }
+  .stage.phone .device { width: 100%; max-width: 320px; }
+}
+
+/* tree */
+.tree ul { list-style: none; margin: 0; padding-left: 18px; }
+.tree > ul { padding-left: 0; }
+.tree li { margin: 1px 0; }
+.tree .node { display: inline-flex; gap: 8px; align-items: baseline; padding: 3px 6px; border-radius: 6px; cursor: pointer; }
+.tree .node:hover { background: var(--surface-2); }
+.tree .tw { width: 12px; display: inline-block; color: var(--ink-3); font-family: var(--mono); }
+.tree .nm { font-family: var(--mono); font-size: 13px; }
+.tree .c { font-size: 12px; color: var(--ink-3); }
+
+/* tables */
+table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.data th { text-align: left; font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--line); padding: 8px; position: sticky; top: 53px; background: var(--bg); }
+table.data td { border-bottom: 1px solid var(--line); padding: 7px 8px; vertical-align: top; }
+table.data td.u { font-family: var(--mono); font-size: 12px; word-break: break-all; }
+table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 12px; }
+.toolbar input[type=search], .toolbar select { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 10px; }
+.toolbar input[type=search] { flex: 1; min-width: 200px; }
+.pager { display: flex; gap: 8px; align-items: center; justify-content: center; margin: 14px 0; }
+.note { border-left: 3px solid var(--accent); background: var(--surface); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+code, pre.cmd { font-family: var(--mono); font-size: 12.5px; }
+pre.cmd { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow: auto; }
+.links li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="index.html" style="text-decoration:none;color:inherit" title="К восстановленному форуму"><b>← wapForum</b><span class="tag" id="brandTag">исходные страницы</span></a>
+  <nav class="tabs" id="tabs">
+    <a href="#/overview" data-tab="overview">Обзор</a>
+    <a href="#/browse" data-tab="browse">Навигатор</a>
+    <a href="#/map" data-tab="map">Карта сайта</a>
+    <a href="#/urls" data-tab="urls">Все URL</a>
+    <a href="#/sources" data-tab="sources">Источники</a>
+  </nav>
+  <span class="spacer"></span>
+  <button class="icon-btn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg></button>
+</header>
+
+<!-- OVERVIEW -->
+<main class="view" id="v-overview"><div class="wrap">
+  <h1 id="ovTitle">forum.wapcity.ru</h1>
+  <p class="lede" id="ovLede"></p>
+  <div id="emptyNote"></div>
+  <div class="grid kpis" id="kpis"></div>
+  <h2>Снимки по месяцам</h2>
+  <div class="card chart" id="chart"><div class="tip" id="tip"></div></div>
+  <p class="faint" style="font-size:12px;margin:6px 2px 0">Число захватов в индексе Wayback Machine. Нажмите на столбец, чтобы открыть страницы за этот месяц в навигаторе.</p>
+  <div class="grid two" style="margin-top:8px">
+    <div>
+      <h2>Самые связанные страницы</h2>
+      <div class="card" style="padding:4px"><ul class="plist" id="topLinked"></ul></div>
+    </div>
+    <div>
+      <h2>Типы страниц</h2>
+      <div class="card"><div class="hbars" id="typeBars"></div></div>
+      <h2>Главная страница во времени</h2>
+      <div class="card" style="padding:4px"><ul class="plist" id="homes"></ul></div>
+    </div>
+  </div>
+</div></main>
+
+<!-- BROWSE -->
+<main class="view" id="v-browse">
+  <div class="nav-layout" id="navLayout">
+    <aside class="side">
+      <div class="filters">
+        <input type="search" id="q" placeholder="Поиск по названию и адресу…" autocomplete="off">
+        <div class="r">
+          <select id="fType"><option value="">Все типы</option></select>
+          <select id="fYear"><option value="">Все годы</option></select>
+          <select id="fSort">
+            <option value="date">По дате</option>
+            <option value="date-desc">Сначала новые</option>
+            <option value="title">По названию</option>
+            <option value="links">По ссылкам</option>
+          </select>
+        </div>
+        <div class="r">
+          <label class="chk"><input type="checkbox" id="fFull"> искать в тексте</label>
+          <label class="chk"><input type="checkbox" id="fLatest"> одна версия на URL</label>
+        </div>
+        <div class="r" id="prefixRow" hidden><span class="badge" id="prefixBadge"></span><button class="icon-btn" id="prefixClear" style="padding:2px 7px">×</button></div>
+      </div>
+      <div class="count"><span id="count"></span><span id="searchState"></span></div>
+      <div class="scroll" id="listScroll"><ul class="plist" id="list"></ul></div>
+    </aside>
+    <section class="viewer">
+      <div class="vbar">
+        <button class="icon-btn only-mobile" id="backToList" title="К списку">☰</button>
+        <button class="icon-btn" id="hBack" title="Назад">←</button>
+        <button class="icon-btn" id="hFwd" title="Вперёд">→</button>
+        <button class="icon-btn" id="pPrev" title="Предыдущая в списке">↑</button>
+        <button class="icon-btn" id="pNext" title="Следующая в списке">↓</button>
+        <div class="addr" id="addr">—</div>
+        <select id="versions" title="Другие версии этой страницы"></select>
+        <div class="seg" id="modeSeg"><button data-m="phone" class="on" title="Как на телефоне">📱</button><button data-m="wide" title="Во всю ширину">▭</button></div>
+        <a class="icon-btn" id="openWb" target="_blank" rel="noopener" title="Открыть в Wayback Machine" style="text-decoration:none">WB↗</a>
+        <a class="icon-btn" id="openNew" target="_blank" rel="noopener" title="Открыть страницу отдельно" style="text-decoration:none">⧉</a>
+      </div>
+      <div class="meta-line" id="metaLine"></div>
+      <div class="stage phone" id="stage">
+        <div class="empty-v" id="emptyV">Выберите страницу слева — она откроется здесь. Ссылки внутри архивных страниц работают: переходы ведут на ближайшую по времени сохранённую копию, а недостающие страницы открываются в Wayback Machine (отмечены ↗).</div>
+        <div class="device" id="device" hidden><iframe id="frame" title="Архивная страница"></iframe></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- MAP -->
+<main class="view" id="v-map"><div class="wrap">
+  <h1>Карта сайта</h1>
+  <p class="lede">Структура адресов: хост → путь. Числа — сохранённые страницы / все известные архиву адреса. Нажмите на узел, чтобы раскрыть его, или на «открыть», чтобы увидеть страницы раздела в навигаторе.</p>
+  <div class="card tree" id="tree"></div>
+</div></main>
+
+<!-- URLS -->
+<main class="view" id="v-urls"><div class="wrap">
+  <h1>Все известные адреса</h1>
+  <p class="lede">Каждый URL домена, который встречается в индексе Wayback Machine, — включая те, что не удалось скачать (ошибки, редиректы). Сохранённые локально открываются в навигаторе, остальные — в Wayback.</p>
+  <div class="toolbar">
+    <input type="search" id="uq" placeholder="Фильтр по адресу…">
+    <select id="uLoc"><option value="">Все</option><option value="1">Сохранены локально</option><option value="0">Только в Wayback</option></select>
+  </div>
+  <table class="data"><thead><tr><th>Адрес</th><th>Снимков</th><th>Первый</th><th>Последний</th><th>HTTP</th><th></th></tr></thead><tbody id="utbody"></tbody></table>
+  <div class="pager" id="upager"></div>
+</div></main>
+
+<!-- SOURCES -->
+<main class="view" id="v-sources"><div class="wrap">
+  <h1>Источники и метод</h1>
+  <p class="lede">Откуда взялись материалы и как воспроизвести сборку.</p>
+  <h2>Что было запрошено</h2>
+  <table class="data"><thead><tr><th>Источник</th><th>Запрос</th><th>Снимков</th><th>Уникальных URL</th><th>Период</th></tr></thead><tbody id="srcBody"></tbody></table>
+  <p class="faint" id="srcMeta" style="font-size:12px"></p>
+  <h2>Внешние архивы для ручной проверки</h2>
+  <ul class="links" id="extLinks"></ul>
+  <h2>Как пересобрать</h2>
+  <pre class="cmd">python3 scripts/fetch_wayback.py                 # индекс + последняя версия каждого URL
+python3 scripts/fetch_wayback.py --versions 0    # все различающиеся версии
+python3 scripts/build_site.py                    # archive/ → docs/archive.html (этот навигатор)
+python3 scripts/extract_forum.py                 # → docs/forum.js (форум, люди, история)</pre>
+  <div class="note">Страницы WML (WAP 1.x) преобразованы в HTML: карточки <code>&lt;card&gt;</code> показаны блоками, <code>&lt;anchor&gt;/&lt;go&gt;</code> и <code>&lt;do&gt;</code> — ссылками. Формы, скрипты и пароли отключены. Кодировка определяется по заголовкам, а для старых страниц без них — эвристикой (windows-1251 / KOI8-R).</div>
+</div></main>
+
+<script src="data.js"></script>
+<script>
+(function () {
+"use strict";
+var D = window.WC_DATA || { pages: [], known: [], perMonth: [], types: {}, sources: {}, title: "forum.wapcity.ru" };
+var P = D.pages;
+var byId = {};
+P.forEach(function (p, i) { p.i = i; byId[p.id] = p; });
+var byNorm = {};
+P.forEach(function (p) { (byNorm[p.n] = byNorm[p.n] || []).push(p); });
+Object.keys(byNorm).forEach(function (k) { byNorm[k].sort(function (a, b) { return a.ts < b.ts ? -1 : 1; }); });
+var TYPES = D.types || {};
+var MONTHS = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+function fmtTs(ts) { return ts ? ts.slice(6, 8) + "." + ts.slice(4, 6) + "." + ts.slice(0, 4) : "—"; }
+function fmtTsLong(ts) { return fmtTs(ts) + (ts && ts.length >= 12 ? " " + ts.slice(8, 10) + ":" + ts.slice(10, 12) : ""); }
+function num(n) { return Number(n || 0).toLocaleString("ru-RU"); }
+function wb(ts, url) { return "https://web.archive.org/web/" + ts + "/" + url; }
+function shortUrl(u) { return u.replace(/^https?:\/\//, ""); }
+function save(k, v) { try { localStorage.setItem("wc." + k, v); } catch (e) {} }
+function load(k) { try { return localStorage.getItem("wc." + k); } catch (e) { return null; } }
+
+document.title = "Исходные страницы " + D.title;
+$("brandTag").textContent = "исходные страницы " + D.title;
+$("ovTitle").textContent = D.title;
+
+/* ---------------- theme */
+function applyTheme(t) {
+  if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme");
+  var f = $("frame");
+  try { f.contentWindow.postMessage({ wc: "theme", theme: t || null }, "*"); } catch (e) {}
+}
+var theme = load("theme");
+applyTheme(theme);
+$("themeBtn").onclick = function () {
+  var dark = theme ? theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  theme = dark ? "light" : "dark";
+  save("theme", theme);
+  applyTheme(theme);
+};
+
+/* ---------------- routing */
+var current = null;
+function route() {
+  var h = location.hash.replace(/^#\/?/, "");
+  var parts = h.split("/");
+  var tab = parts[0] || (P.length ? "overview" : "overview");
+  if (tab === "view") { openPage(parts[1], true); tab = "browse"; }
+  if (!$("v-" + tab)) tab = "overview";
+  document.querySelectorAll("main.view").forEach(function (m) { m.classList.toggle("on", m.id === "v-" + tab); });
+  document.querySelectorAll("#tabs a").forEach(function (a) { a.classList.toggle("on", a.dataset.tab === tab); });
+  if (tab === "browse") { renderList(); if (!parts[1] && current) $("navLayout").classList.add("viewing"); }
+  if (tab === "overview") renderChart();
+  if (tab === "map") renderTree();
+  if (tab === "urls") renderUrls();
+  if (tab !== "browse") window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+
+/* ---------------- overview */
+function renderOverview() {
+  var years = {};
+  P.forEach(function (p) { years[p.ts.slice(0, 4)] = 1; });
+  var ys = Object.keys(years).sort();
+  var src = (D.sources && D.sources.sources) || [];
+  var first = null, last = null;
+  src.forEach(function (s) { if (s.first && (!first || s.first < first)) first = s.first; if (s.last && (!last || s.last > last)) last = s.last; });
+  if (!first && P.length) { first = P[0].ts; P.forEach(function (p) { if (p.ts < first) first = p.ts; if (!last || p.ts > last) last = p.ts; }); }
+  var topics = P.filter(function (p) { return p.k === "topic"; }).length;
+  var kp = [
+    [num(P.length), "сохранённых страниц"],
+    [num(Object.keys(byNorm).length), "уникальных адресов в архиве"],
+    [num(D.cdxTotal || 0), "снимков в индексе Wayback"],
+    [num(D.known.length), "адресов известно архиву"],
+    [topics ? num(topics) : "—", "страниц-тем форума"],
+    [first ? fmtTs(first).slice(3) + " – " + fmtTs(last).slice(3) : "—", "период снимков"]
+  ];
+  $("kpis").innerHTML = kp.map(function (k) { return '<div class="card kpi"><div class="v">' + esc(k[0]) + '</div><div class="l">' + esc(k[1]) + "</div></div>"; }).join("");
+  $("ovLede").textContent = P.length
+    ? "Восстановленная копия WAP-форума по снимкам Wayback Machine" + (ys.length ? " за " + ys[0] + (ys.length > 1 ? "–" + ys[ys.length - 1] : "") + " гг." : "") + " Все страницы можно листать прямо здесь: ссылки между ними работают, WML-страницы показаны так, как их видел телефон."
+    : "";
+  if (!P.length) {
+    $("emptyNote").innerHTML = '<div class="note"><b>Архив пока пуст.</b> Страницы ещё не скачаны. Запустите <code>python3 scripts/fetch_wayback.py</code>, затем <code>python3 scripts/build_site.py</code> — и обновите эту страницу.</div>';
+  }
+  renderChart();
+  // type bars
+  var tc = {};
+  P.forEach(function (p) { tc[p.k] = (tc[p.k] || 0) + 1; });
+  var tk = Object.keys(tc).sort(function (a, b) { return tc[b] - tc[a]; });
+  var max = Math.max.apply(null, tk.map(function (k) { return tc[k]; }).concat([1]));
+  $("typeBars").innerHTML = tk.length ? tk.map(function (k) {
+    return '<div class="hbar" data-k="' + esc(k) + '" title="Показать в навигаторе"><span>' + esc(TYPES[k] || k) + '</span><div><div class="track" style="width:' + (100 * tc[k] / max).toFixed(1) + '%"></div></div><span class="n">' + num(tc[k]) + "</span></div>";
+  }).join("") : '<span class="faint">нет данных</span>';
+  $("typeBars").querySelectorAll(".hbar").forEach(function (el) {
+    el.onclick = function () { setFilters({ type: el.dataset.k }); location.hash = "#/browse"; };
+  });
+  // top linked
+  var top = P.slice().sort(function (a, b) { return b.in - a.in; }).filter(function (p) { return p.in > 0; }).slice(0, 12);
+  $("topLinked").innerHTML = top.length ? top.map(function (p) { return rowHtml(p); }).join("") : '<li class="faint" style="padding:10px">нет данных</li>';
+  var homes = P.filter(function (p) { return p.k === "home"; }).sort(function (a, b) { return a.ts < b.ts ? -1 : 1; });
+  $("homes").innerHTML = homes.length ? homes.slice(0, 40).map(function (p) { return rowHtml(p); }).join("") : '<li class="faint" style="padding:10px">нет данных</li>';
+}
+
+function renderChart() {
+  var el = $("chart"), tip = $("tip");
+  var pm = D.perMonth || [];
+  if (!el.clientWidth) return; // hidden tab; drawn when the overview is shown
+  el.querySelectorAll("svg, .chart-empty").forEach(function (s) { s.remove(); });
+  if (!pm.length) { el.insertAdjacentHTML("beforeend", '<div class="faint chart-empty" style="padding:30px;text-align:center">нет данных</div>'); return; }
+  // fill gaps between first and last month
+  var start = pm[0][0], end = pm[pm.length - 1][0], map = {};
+  pm.forEach(function (r) { map[r[0]] = r[1]; });
+  var months = [];
+  var y = +start.slice(0, 4), m = +start.slice(4, 6);
+  while (true) {
+    var key = y + (m < 10 ? "0" : "") + m;
+    months.push([key, map[key] || 0]);
+    if (key >= end || months.length > 600) break;
+    m++; if (m > 12) { m = 1; y++; }
+  }
+  var W = el.clientWidth - 32, H = 220, pl = 40, pb = 22, pt = 8;
+  var max = Math.max.apply(null, months.map(function (r) { return r[1]; }).concat([1]));
+  var nice = Math.pow(10, Math.floor(Math.log10(max))); var top = Math.ceil(max / nice) * nice;
+  var bw = (W - pl) / months.length, gap = bw > 6 ? 2 : (bw > 3 ? 1 : 0);
+  var svg = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Снимки по месяцам"><g class="axis">';
+  for (var i = 0; i <= 4; i++) {
+    var v = top * i / 4, yy = pt + (H - pt - pb) * (1 - i / 4);
+    svg += '<line class="grid-line" x1="' + pl + '" x2="' + W + '" y1="' + yy + '" y2="' + yy + '"/><text x="' + (pl - 6) + '" y="' + (yy + 4) + '" text-anchor="end">' + num(Math.round(v)) + "</text>";
+  }
+  months.forEach(function (r, i) {
+    if (r[0].slice(4) === "01" || i === 0) svg += '<text x="' + (pl + i * bw) + '" y="' + (H - 6) + '">' + r[0].slice(0, 4) + "</text>";
+  });
+  svg += "</g>";
+  months.forEach(function (r, i) {
+    var h = (H - pt - pb) * r[1] / top, x = pl + i * bw + gap / 2, w = Math.max(1, bw - gap), yb = H - pb - h;
+    var rr = Math.min(4, w / 2, h);
+    var d = h > 0 ? "M" + x + "," + (H - pb) + "V" + (yb + rr) + "Q" + x + "," + yb + " " + (x + rr) + "," + yb + "H" + (x + w - rr) + "Q" + (x + w) + "," + yb + " " + (x + w) + "," + (yb + rr) + "V" + (H - pb) + "Z" : "";
+    svg += '<g data-m="' + r[0] + '" data-v="' + r[1] + '"><rect class="hit" x="' + (pl + i * bw) + '" y="' + pt + '" width="' + bw + '" height="' + (H - pt - pb) + '"/>' + (d ? '<path class="bar" d="' + d + '"/>' : "") + "</g>";
+  });
+  svg += "</svg>";
+  el.insertAdjacentHTML("beforeend", svg);
+  var s = el.querySelector("svg");
+  s.addEventListener("mousemove", function (ev) {
+    var g = ev.target.closest("g[data-m]");
+    s.querySelectorAll("g.on").forEach(function (x) { x.classList.remove("on"); });
+    if (!g) { tip.style.display = "none"; return; }
+    g.classList.add("on");
+    var mm = g.dataset.m, rect = el.getBoundingClientRect(), br = g.getBoundingClientRect();
+    tip.innerHTML = "<b>" + MONTHS[+mm.slice(4) - 1] + " " + mm.slice(0, 4) + "</b> · " + num(g.dataset.v) + " снимков";
+    tip.style.display = "block";
+    tip.style.left = (br.left - rect.left + br.width / 2) + "px";
+    tip.style.top = (br.top - rect.top + 6) + "px";
+  });
+  s.addEventListener("mouseleave", function () { tip.style.display = "none"; s.querySelectorAll("g.on").forEach(function (x) { x.classList.remove("on"); }); });
+  s.addEventListener("click", function (ev) {
+    var g = ev.target.closest("g[data-m]"); if (!g) return;
+    setFilters({ month: g.dataset.m }); location.hash = "#/browse";
+  });
+}
+var rt; window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(renderChart, 150); });
+
+function rowHtml(p, hl) {
+  var cur = current && current.id === p.id ? " cur" : "";
+  var t = esc(p.t), sn = p.sn ? esc(p.sn.slice(0, 160)) : "";
+  if (hl) { t = highlight(t, hl); sn = highlight(sn, hl); }
+  return '<li><a class="row' + cur + '" href="#/view/' + p.id + '" data-id="' + p.id + '"><div class="t">' + t + '</div><div class="u">' + esc(shortUrl(p.url)) + '</div><div class="m"><span class="badge">' + esc(TYPES[p.k] || p.k) + "</span>" + (p.d ? "<span>" + esc(p.d) + "</span>" : "") + "<span>" + fmtTs(p.ts) + "</span>" + (p.fmt === "wml" ? "<span>WML</span>" : "") + (p.in ? "<span>⇠ " + p.in + "</span>" : "") + "</div>" + (sn ? '<div class="sn">' + sn + "</div>" : "") + "</a></li>";
+}
+function highlight(s, q) {
+  if (!q) return s;
+  var i = s.toLowerCase().indexOf(q.toLowerCase());
+  if (i < 0) return s;
+  return s.slice(0, i) + "<mark>" + s.slice(i, i + q.length) + "</mark>" + s.slice(i + q.length);
+}
+
+/* ---------------- browse list */
+var F = { q: "", type: "", year: "", month: "", full: false, latest: false, sort: "date", prefix: "" };
+var filtered = [], shown = 0, PAGE = 200;
+(function initFilters() {
+  var tset = {}; P.forEach(function (p) { tset[p.k] = 1; });
+  Object.keys(TYPES).filter(function (k) { return tset[k]; }).forEach(function (k) { $("fType").insertAdjacentHTML("beforeend", '<option value="' + k + '">' + esc(TYPES[k]) + "</option>"); });
+  var ys = {}; P.forEach(function (p) { ys[p.ts.slice(0, 4)] = 1; });
+  Object.keys(ys).sort().forEach(function (y) { $("fYear").insertAdjacentHTML("beforeend", '<option value="' + y + '">' + y + "</option>"); });
+  var qt;
+  $("q").addEventListener("input", function () { clearTimeout(qt); qt = setTimeout(function () { F.q = $("q").value.trim(); renderList(); }, 120); });
+  $("fType").onchange = function () { F.type = this.value; renderList(); };
+  $("fYear").onchange = function () { F.year = this.value; F.month = ""; renderList(); };
+  $("fSort").onchange = function () { F.sort = this.value; renderList(); };
+  $("fLatest").onchange = function () { F.latest = this.checked; renderList(); };
+  $("fFull").onchange = function () { F.full = this.checked; if (F.full) loadSearch(); else renderList(); };
+  $("prefixClear").onclick = function () { F.prefix = ""; F.month = ""; renderList(); };
+})();
+function setFilters(o) {
+  F.type = o.type || ""; F.month = o.month || ""; F.prefix = o.prefix || ""; F.year = o.month ? o.month.slice(0, 4) : (o.year || "");
+  $("fType").value = F.type; $("fYear").value = F.year;
+  F.q = ""; $("q").value = "";
+  $("navLayout").classList.remove("viewing");
+}
+var searchLoading = false;
+function loadSearch() {
+  if (window.WC_SEARCH) { renderList(); return; }
+  if (searchLoading) return;
+  searchLoading = true;
+  $("searchState").textContent = "загрузка текста…";
+  var s = document.createElement("script");
+  s.src = "search.js";
+  s.onload = function () { $("searchState").textContent = ""; renderList(); };
+  s.onerror = function () { $("searchState").textContent = "полнотекстовый индекс недоступен"; };
+  document.body.appendChild(s);
+}
+function applyFilters() {
+  var q = F.q.toLowerCase();
+  var S = F.full && window.WC_SEARCH;
+  var res = P.filter(function (p) {
+    if (F.type && p.k !== F.type) return false;
+    if (F.month && p.ts.slice(0, 6) !== F.month) return false;
+    if (!F.month && F.year && p.ts.slice(0, 4) !== F.year) return false;
+    if (F.prefix) { var pp = p.h + "/" + p.s.join("/") + "/"; if (pp.indexOf(F.prefix + "/") !== 0) return false; }
+    if (q) {
+      var hit = p.t.toLowerCase().indexOf(q) >= 0 || p.url.toLowerCase().indexOf(q) >= 0 || (p.d || "").indexOf(q) >= 0;
+      if (!hit && S) hit = (S[p.id] || "").indexOf(q) >= 0;
+      if (!hit) return false;
+    }
+    return true;
+  });
+  if (F.latest) {
+    var best = {};
+    res.forEach(function (p) { if (!best[p.n] || best[p.n].ts < p.ts) best[p.n] = p; });
+    res = res.filter(function (p) { return best[p.n] === p; });
+  }
+  var cmp = {
+    "date": function (a, b) { return a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0; },
+    "date-desc": function (a, b) { return a.ts > b.ts ? -1 : a.ts < b.ts ? 1 : 0; },
+    "title": function (a, b) { return a.t.localeCompare(b.t, "ru"); },
+    "links": function (a, b) { return b.in - a.in; }
+  }[F.sort];
+  return res.sort(cmp);
+}
+function renderList() {
+  filtered = applyFilters();
+  shown = 0;
+  $("list").innerHTML = "";
+  var pr = F.prefix || (F.month ? MONTHS[+F.month.slice(4) - 1] + " " + F.month.slice(0, 4) : "");
+  $("prefixRow").hidden = !pr;
+  $("prefixBadge").textContent = F.prefix ? "раздел: " + F.prefix : pr;
+  $("count").textContent = P.length ? num(filtered.length) + " из " + num(P.length) : "архив пуст";
+  appendList();
+  $("listScroll").scrollTop = 0;
+}
+function appendList() {
+  var old = $("list").querySelector(".more-li"); if (old) old.remove();
+  var chunk = filtered.slice(shown, shown + PAGE);
+  shown += chunk.length;
+  $("list").insertAdjacentHTML("beforeend", chunk.map(function (p) { return rowHtml(p, F.q); }).join(""));
+  if (shown < filtered.length) {
+    $("list").insertAdjacentHTML("beforeend", '<li class="more-li"><button class="more">Показать ещё ' + Math.min(PAGE, filtered.length - shown) + " (осталось " + num(filtered.length - shown) + ")</button></li>");
+    $("list").querySelector(".more").onclick = appendList;
+  }
+  if (!P.length) $("list").innerHTML = '<li class="faint" style="padding:16px">Страниц пока нет — см. «Обзор».</li>';
+}
+
+/* ---------------- viewer */
+var mode = load("mode") || "phone";
+function setMode(m) {
+  mode = m; save("mode", m);
+  $("stage").classList.toggle("phone", m === "phone");
+  $("modeSeg").querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b.dataset.m === m); });
+}
+setMode(mode);
+$("modeSeg").onclick = function (e) { var b = e.target.closest("button"); if (b) setMode(b.dataset.m); };
+$("hBack").onclick = function () { history.back(); };
+$("hFwd").onclick = function () { history.forward(); };
+$("backToList").onclick = function () { $("navLayout").classList.remove("viewing"); };
+$("pPrev").onclick = function () { step(-1); };
+$("pNext").onclick = function () { step(1); };
+function step(d) {
+  if (!current) return;
+  var i = filtered.indexOf(current);
+  if (i < 0) i = d > 0 ? -1 : filtered.length;
+  var n = filtered[i + d];
+  if (n) location.hash = "#/view/" + n.id;
+}
+$("versions").onchange = function () { if (this.value) location.hash = "#/view/" + this.value; };
+document.addEventListener("keydown", function (e) {
+  if (e.target.matches("input,select,textarea") || !$("v-browse").classList.contains("on")) return;
+  if (e.key === "j" || e.key === "ArrowDown" && e.altKey) { step(1); e.preventDefault(); }
+  if (e.key === "k" || e.key === "ArrowUp" && e.altKey) { step(-1); e.preventDefault(); }
+  if (e.key === "/") { $("q").focus(); e.preventDefault(); }
+});
+
+function openPage(id, fromHash) {
+  var p = byId[id];
+  if (!p) return;
+  var same = current === p;
+  current = p;
+  $("navLayout").classList.add("viewing");
+  $("emptyV").hidden = true;
+  $("device").hidden = false;
+  var f = $("frame"), src = "p/" + p.id + ".html";
+  if (!same || f.dataset.id !== p.id) {
+    f.dataset.id = p.id;
+    try { f.contentWindow.location.replace(src); } catch (e) { f.src = src; }
+  }
+  showMeta(p);
+}
+function showMeta(p) {
+  $("addr").textContent = shortUrl(p.url);
+  $("addr").title = p.url;
+  $("openWb").href = wb(p.ts, p.url);
+  $("openNew").href = "p/" + p.id + ".html";
+  var vs = byNorm[p.n] || [p];
+  $("versions").innerHTML = vs.map(function (v) { return '<option value="' + v.id + '"' + (v === p ? " selected" : "") + ">" + fmtTs(v.ts) + (vs.length > 1 ? "" : " · единственная версия") + "</option>"; }).join("");
+  $("versions").disabled = vs.length < 2;
+  $("versions").title = vs.length > 1 ? vs.length + " версий этой страницы" : "Единственная версия";
+  $("metaLine").innerHTML = "<span><b>" + esc(p.t) + "</b></span><span>снимок " + fmtTsLong(p.ts) + "</span><span>" + esc(TYPES[p.k] || p.k) + "</span><span>" + p.fmt.toUpperCase() + " · " + esc(p.enc) + " · " + num(Math.round(p.sz / 102.4) / 10) + " КБ</span>" + (p.in ? "<span>на неё ссылаются " + p.in + " стр.</span>" : "");
+  document.querySelectorAll(".row.cur").forEach(function (r) { r.classList.remove("cur"); });
+  var r = document.querySelector('.row[data-id="' + p.id + '"]');
+  if (r) { r.classList.add("cur"); if (r.closest("#list")) r.scrollIntoView({ block: "nearest" }); }
+  var i = filtered.indexOf(p);
+  $("pPrev").disabled = i <= 0 && i !== -1 ? true : false;
+  $("pNext").disabled = i === filtered.length - 1;
+}
+// a link clicked inside the archived page: keep the address bar and hash in sync
+window.addEventListener("message", function (ev) {
+  if (!ev.data || ev.data.wc !== "nav") return;
+  var p = byId[ev.data.id];
+  if (!p) return;
+  try { ev.source.postMessage({ wc: "theme", theme: theme || null }, "*"); } catch (e) {}
+  if (current !== p) {
+    current = p;
+    $("frame").dataset.id = p.id;
+    history.replaceState(null, "", "#/view/" + p.id);
+    showMeta(p);
+  }
+});
+
+/* ---------------- site map */
+var treeBuilt = false;
+function renderTree() {
+  if (treeBuilt) return; treeBuilt = true;
+  var root = { c: {}, n: 0, k: 0 };
+  function add(host, segs, field) {
+    var node = root; node[field]++;
+    var path = [host].concat(segs);
+    path.forEach(function (s) { node = node.c[s] = node.c[s] || { c: {}, n: 0, k: 0 }; node[field]++; });
+  }
+  P.forEach(function (p) { add(p.h, p.s, "n"); });
+  D.known.forEach(function (u) { if (u.h) add(u.h, u.s || [], "k"); });
+  function html(node, prefix) {
+    var keys = Object.keys(node.c).sort(function (a, b) { return (node.c[b].n + node.c[b].k) - (node.c[a].n + node.c[a].k); });
+    if (!keys.length) return "";
+    return "<ul>" + keys.map(function (k) {
+      var ch = node.c[k], pf = prefix ? prefix + "/" + k : k, kids = Object.keys(ch.c).length;
+      return '<li data-pf="' + esc(pf) + '"><span class="node"><span class="tw">' + (kids ? "▸" : "·") + '</span><span class="nm">' + esc(decodeSafe(k)) + '</span><span class="c">' + num(ch.n) + " / " + num(ch.k) + "</span>" + (ch.n ? ' <a href="#" class="open" style="font-size:12px">открыть</a>' : "") + "</span>" + (kids ? '<div hidden data-lazy="1"></div>' : "") + "</li>";
+    }).join("") + "</ul>";
+  }
+  var nodes = {};
+  function find(pf) { var n = root; pf.split("/").forEach(function (s) { n = n && n.c[s]; }); return n; }
+  var host = root.n || root.k ? html(root, "") : '<p class="faint">нет данных</p>';
+  $("tree").innerHTML = host;
+  $("tree").onclick = function (e) {
+    var li = e.target.closest("li"); if (!li) return;
+    if (e.target.classList.contains("open")) {
+      e.preventDefault();
+      setFilters({ prefix: li.dataset.pf });
+      location.hash = "#/browse"; return;
+    }
+    if (!e.target.closest(".node")) return;
+    var box = li.querySelector(":scope > div"); if (!box) return;
+    if (box.dataset.lazy) { box.innerHTML = html(find(li.dataset.pf), li.dataset.pf); delete box.dataset.lazy; }
+    box.hidden = !box.hidden;
+    li.querySelector(".tw").textContent = box.hidden ? "▸" : "▾";
+  };
+  var first = $("tree").querySelector("li .node"); if (first && Object.keys(root.c).length === 1) first.click();
+}
+function decodeSafe(s) { try { return decodeURIComponent(s); } catch (e) { return s; } }
+
+/* ---------------- all URLs */
+var upage = 0, UPAGE = 100;
+function renderUrls() {
+  var q = $("uq").value.trim().toLowerCase(), loc = $("uLoc").value;
+  var rows = D.known.filter(function (u) {
+    if (loc === "1" && !u.id) return false;
+    if (loc === "0" && u.id) return false;
+    return !q || u.u.toLowerCase().indexOf(q) >= 0;
+  });
+  var pages = Math.max(1, Math.ceil(rows.length / UPAGE));
+  if (upage >= pages) upage = pages - 1;
+  $("utbody").innerHTML = rows.slice(upage * UPAGE, (upage + 1) * UPAGE).map(function (u) {
+    var link = '<a href="' + esc(wb(u.l, u.u)) + '" target="_blank" rel="noopener">Wayback↗</a>';
+    if (u.id && byId[u.id]) link = '<a href="#/view/' + u.id + '">открыть</a> · ' + link;
+    return '<tr><td class="u">' + esc(shortUrl(u.u)) + '</td><td class="num">' + num(u.c) + "</td><td>" + fmtTs(u.f) + "</td><td>" + fmtTs(u.l) + "</td><td>" + esc(u.st) + "</td><td style=\"white-space:nowrap\">" + link + "</td></tr>";
+  }).join("") || '<tr><td colspan="6" class="faint">нет данных</td></tr>';
+  $("upager").innerHTML = pages > 1 ? '<button class="icon-btn" id="up-prev"' + (upage ? "" : " disabled") + '>←</button><span class="muted">' + (upage + 1) + " / " + pages + " · " + num(rows.length) + ' адресов</span><button class="icon-btn" id="up-next"' + (upage < pages - 1 ? "" : " disabled") + ">→</button>" : '<span class="muted">' + num(rows.length) + " адресов</span>";
+  var a = $("up-prev"), b = $("up-next");
+  if (a) a.onclick = function () { upage--; renderUrls(); window.scrollTo(0, 0); };
+  if (b) b.onclick = function () { upage++; renderUrls(); window.scrollTo(0, 0); };
+}
+var ut; $("uq").addEventListener("input", function () { clearTimeout(ut); ut = setTimeout(function () { upage = 0; renderUrls(); }, 150); });
+$("uLoc").onchange = function () { upage = 0; renderUrls(); };
+
+/* ---------------- sources */
+(function renderSources() {
+  var s = (D.sources && D.sources.sources) || [];
+  $("srcBody").innerHTML = s.length ? s.map(function (r) {
+    return "<tr><td>" + esc(r.source) + '</td><td class="u">' + esc(r.query) + " (" + esc(r.matchType) + ')</td><td class="num">' + num(r.captures) + '</td><td class="num">' + num(r.uniqueUrls) + "</td><td>" + (r.first ? fmtTs(r.first) + " – " + fmtTs(r.last) : "—") + "</td></tr>";
+  }).join("") : '<tr><td colspan="5" class="faint">Индекс ещё не загружался.</td></tr>';
+  if (D.sources && D.sources.fetchedAt) $("srcMeta").textContent = "Индекс получен " + D.sources.fetchedAt + "; версий на URL: " + (D.sources.versionsPerUrl === 0 ? "все" : D.sources.versionsPerUrl) + "; выбрано для загрузки: " + num(D.sources.selected) + ".";
+  var dom = D.title;
+  var ext = [
+    ["Wayback Machine — календарь снимков", "https://web.archive.org/web/*/" + dom + "*"],
+    ["Wayback Machine — список всех URL домена", "https://web.archive.org/web/*/" + dom + "/*"],
+    ["Wayback CDX API (сырой индекс)", "https://web.archive.org/cdx/search/cdx?url=" + dom + "&matchType=domain&collapse=urlkey&limit=500"],
+    ["archive.today (archive.ph)", "https://archive.ph/" + dom],
+    ["Memento Time Travel (поиск по многим архивам)", "https://timetravel.mementoweb.org/list/2005/http://" + dom + "/"],
+    ["Wayback — весь домен wapcity.ru", "https://web.archive.org/web/*/wapcity.ru*"],
+    ["Яндекс — упоминания", "https://yandex.ru/search/?text=%22wapcity.ru%22"],
+    ["Google — упоминания", "https://www.google.com/search?q=%22wapcity.ru%22"]
+  ];
+  $("extLinks").innerHTML = ext.map(function (e) { return '<li><a href="' + esc(e[1]) + '" target="_blank" rel="noopener">' + esc(e[0]) + '</a> <span class="faint mono" style="font-size:11.5px">' + esc(shortUrl(e[1])) + "</span></li>"; }).join("");
+})();
+
+renderOverview();
+route();
+})();
+</script>
+</body>
+</html>

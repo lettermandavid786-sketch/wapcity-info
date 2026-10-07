@@ -55,6 +55,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
           python3 scripts/build_site.py --archive archive --out docs
+          python3 scripts/extract_forum.py --archive archive --out docs
           git add archive docs
           git diff --cached --quiet || { git commit -m "Wayback index for forum.wapcity.ru"; git pull --rebase -X theirs; git push; }
 
@@ -67,7 +68,9 @@ jobs:
             --max-minutes 40
 
       - name: Build site
-        run: python3 scripts/build_site.py --archive archive --out docs
+        run: |
+          python3 scripts/build_site.py --archive archive --out docs
+          python3 scripts/extract_forum.py --archive archive --out docs
 
       - name: Commit pages
         run: |

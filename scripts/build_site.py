@@ -460,11 +460,22 @@ PAGE_TMPL = """<!doctype html>
 <title>{title}</title>
 <link rel="stylesheet" href="../assets/page.css">
 </head><body class="{kind}" data-id="{id}">
-<div class="wc-standalone" hidden>Архивная копия · {date} · <a href="../index.html#/view/{id}">открыть в навигаторе</a> · <a href="{wb}" target="_blank" rel="noopener">Wayback</a></div>
+<div class="wc-standalone" hidden>Архивная копия · {date} · <a href="../archive.html#/view/{id}">открыть в навигаторе</a> · <a href="../index.html">форум</a> · <a href="{wb}" target="_blank" rel="noopener">Wayback</a></div>
 <main class="wc-page">{body}</main>
 <script src="../assets/page.js"></script>
 </body></html>
 """
+
+
+PROFILE_PRIVATE = re.compile(
+    r"(телефон|e-?mail|ICQ UIN|имя|фамилия|день рождения|домашняя страница|о себе|ім’я|прізвище|телефон)"
+    r"(\s*(?:<br>)?\s*:)([^<]*)", re.I)
+
+
+def redact_profile(fragment):
+    """Hide personal fields of user profiles (phone, e-mail, names, birthday, bio) in the rendered copy."""
+    return PROFILE_PRIVATE.sub(lambda m: m.group(1) + m.group(2) + (" скрыто" if m.group(3).strip() else ""),
+                               fragment)
 
 
 def fmt_date(ts):
@@ -558,6 +569,9 @@ def main():
         except Exception as e:  # malformed beyond repair: show as plain text
             log(f"  parse error in {rec['url']}: {e}")
             out_html = f"<pre>{html.escape(text)}</pre>"
+        if classify(rec["url"]) == "user":
+            out_html = redact_profile(out_html)
+            rw.text = [redact_profile(t) for t in rw.text]
         plain = re.sub(r"\s+", " ", " ".join(rw.text)).strip()
         title = rw.title or (plain[:80] if plain else rec["url"])
         for pid in rw.local_links:
@@ -624,10 +638,10 @@ def main():
         f.write(";\n")
 
     for name in os.listdir(TEMPLATE_DIR):
-        dst = os.path.join(args.out, name) if name == "index.html" else os.path.join(args.out, "assets", name)
+        dst = os.path.join(args.out, name) if name.endswith(".html") else os.path.join(args.out, "assets", name)
         shutil.copyfile(os.path.join(TEMPLATE_DIR, name), dst)
 
-    log(f"site written to {args.out}/index.html — {len(index)} pages, {len(known_list)} known URLs")
+    log(f"site written to {args.out}/ — {len(index)} pages, {len(known_list)} known URLs")
 
 
 if __name__ == "__main__":
