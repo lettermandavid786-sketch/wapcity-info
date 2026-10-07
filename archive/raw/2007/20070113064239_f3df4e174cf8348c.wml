@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">
+<wml>
+<card id="index" title="wapForum">
+
+<b>ЗВОРОТНИЙ ЗВЯЗОК</b><br />
+Розробка і підтримка сайта здійснюється компанією "Мобитех" (торговельна марка "Мобидо.ру"). У випадку виникнення будь-яких питань і побажань з поліпшення роботи сайта, Ви можете зв'язатися з нами за<br />
+тел.:<a href="wtai://wp/mc;0445012559">(044) 501 25 59</a><br />
+email:inna@mobido.ru<br />
+<form name="cont" id="cont" method="post" action="/contacts">
+Тема повідомлення:<br />
+<input name="tema" type="text" id="tema" /><br />
+Текст повідомлення:<br />
+<input name="text" type="text" id="text" value="" /><br />
+Телефон для зворотного зв'язку (у форматі 3-префікс-номер телефону, наприклад, 3801234567)<br />
+<input name="phone" type="text" id="phone" /><br />
+<input type="submit" name="Submit" value="Відправити" /><br />
+</form>
+
+
+
+
+
+
+<a href="/index.jsp">Назад</a><br/><a href="/index.jsp">На Головну</a><br/>
+
+</card>
+</wml>
+
+
+
+

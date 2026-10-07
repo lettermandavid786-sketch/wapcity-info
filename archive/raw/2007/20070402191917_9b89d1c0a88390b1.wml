@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+
+
+<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">
+<wml>
+<card id="index" title="wapForum">
+
+<img src="/images/mobido.wbmp" border="0" alt="logo" /><br />
+Приветствуем новичков:<br />
+
+<img src="/images/6.gif" border="0" alt="smile"  width="20" height="20" /><a href="/view;jsessionid=6EE44E50A2AEAD1539047442AAB3EBFF?aid=126921">SEXYJEY</a><br/><img src="/images/6.gif" border="0" alt="smile"  width="20" height="20" /><a href="/view;jsessionid=6EE44E50A2AEAD1539047442AAB3EBFF?aid=126920">Bobr</a><br/><img src="/images/6.gif" border="0" alt="smile"  width="20" height="20" /><a href="/view;jsessionid=6EE44E50A2AEAD1539047442AAB3EBFF?aid=126919">зах787</a><br/>
+<hr />
+<form name="auth" method="post" action="/auth;jsessionid=D2420B3507F1A7A41089D35F746D0786">
+Имя: <br />
+<input type="text" name="n" /><br />
+Пароль:<br />
+<input type="password" name="p" /><br />
+<input type="submit" name="Submit" value="Вход" />
+</form>
+<p><b>Для самых продвинутых: <a href="http://free.javacity.ru/mt-paid/">Огромное количество игр.</a></b></p>
+<a href="/auth;jsessionid=D2420B3507F1A7A41089D35F746D0786">Вход для чтения</a><br />
+<a href="/signup;jsessionid=D2420B3507F1A7A41089D35F746D0786">Регистрация</a>
+<hr />
+<img src="/images/2.gif" border="0" alt="smile" width="14" height="13" />&#160;<a href="/info;jsessionid=D2420B3507F1A7A41089D35F746D0786?page=about">О Сервисе</a><br />
+<img src="/images/1.gif" border="0" alt="smile" width="16" height="16" />&#160;<a href="/info;jsessionid=D2420B3507F1A7A41089D35F746D0786?page=licence">Авторские права</a><br />
+<img src="/images/3.gif" border="0" alt="smile" width="12" height="8" />&#160;<a href="/info;jsessionid=D2420B3507F1A7A41089D35F746D0786?page=contacts">Обратная связь</a><br />
+<p align="center"><b><a href="http://wap.mts.ru">WAP.MTS.RU</a></b></p>
+<p>© "Мобидо.ру" 2005</p>
+</card>
+</wml>
+
+

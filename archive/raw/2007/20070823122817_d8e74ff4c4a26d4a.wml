@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+
+
+
+<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">
+<wml>
+<card id="index" title="wapForum">
+
+
+<p><img src="/images/mobido.wbmp" border="0" alt="logo" /></p>
+  
+Приветствуем новичков:<br />
+
+<img src="/images/6.gif" border="0" alt="smile"  width="20" height="20" /><a href="/view?aid=150188">Мaруськa</a><br/><img src="/images/6.gif" border="0" alt="smile"  width="20" height="20" /><a href="/view?aid=150187">ЛЕХАNet</a><br/><img src="/images/6.gif" border="0" alt="smile"  width="20" height="20" /><a href="/view?aid=150186">poli</a><br/>
+<hr />
+<form name="auth" method="post" action="/auth;jsessionid=762AE6C73C1B163E2D8596C6E44D5E11">
+Имя: <br />
+<input type="text" name="n" /><br />
+Пароль:<br />
+<input type="password" name="p" /><br />
+<input type="submit" name="Submit" value="Вход" />
+</form>
+<p><a href="http://wap.flirtcity.ru">Знакомства с фото</a></p>
+<a href="/auth;jsessionid=762AE6C73C1B163E2D8596C6E44D5E11">Вход для чтения</a><br />
+<a href="/signup;jsessionid=762AE6C73C1B163E2D8596C6E44D5E11">Регистрация</a><br />
+<hr />
+
+<img src="/images/2.gif" border="0" alt="smile" width="14" height="13" />&#160;<a href="/info;jsessionid=762AE6C73C1B163E2D8596C6E44D5E11?page=about">О Сервисе</a><br />
+<img src="/images/1.gif" border="0" alt="smile" width="16" height="16" />&#160;<a href="/info;jsessionid=762AE6C73C1B163E2D8596C6E44D5E11?page=licence">Авторские права</a><br />
+<img src="/images/3.gif" border="0" alt="smile" width="12" height="8" />&#160;<a href="/info;jsessionid=762AE6C73C1B163E2D8596C6E44D5E11?page=contacts">Обратная связь</a><br />
+<p align="center"><b><a href="http://wapcity.ru">wapcity.ru</a></b></p>
+  
+  
+<p>© "Мобидо.ру" 2005</p>
+</card>
+</wml>
+
+
