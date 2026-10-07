@@ -481,7 +481,7 @@ function rowHtml(p, hl) {
   var cur = current && current.id === p.id ? " cur" : "";
   var t = esc(p.t), sn = p.sn ? esc(p.sn.slice(0, 160)) : "";
   if (hl) { t = highlight(t, hl); sn = highlight(sn, hl); }
-  return '<li><a class="row' + cur + '" href="#/view/' + p.id + '" data-id="' + p.id + '"><div class="t">' + t + '</div><div class="u">' + esc(shortUrl(p.url)) + '</div><div class="m"><span class="badge">' + esc(TYPES[p.k] || p.k) + "</span><span>" + fmtTs(p.ts) + "</span>" + (p.fmt === "wml" ? "<span>WML</span>" : "") + (p.in ? "<span>⇠ " + p.in + "</span>" : "") + "</div>" + (sn ? '<div class="sn">' + sn + "</div>" : "") + "</a></li>";
+  return '<li><a class="row' + cur + '" href="#/view/' + p.id + '" data-id="' + p.id + '"><div class="t">' + t + '</div><div class="u">' + esc(shortUrl(p.url)) + '</div><div class="m"><span class="badge">' + esc(TYPES[p.k] || p.k) + "</span>" + (p.d ? "<span>" + esc(p.d) + "</span>" : "") + "<span>" + fmtTs(p.ts) + "</span>" + (p.fmt === "wml" ? "<span>WML</span>" : "") + (p.in ? "<span>⇠ " + p.in + "</span>" : "") + "</div>" + (sn ? '<div class="sn">' + sn + "</div>" : "") + "</a></li>";
 }
 function highlight(s, q) {
   if (!q) return s;
@@ -534,7 +534,7 @@ function applyFilters() {
     if (!F.month && F.year && p.ts.slice(0, 4) !== F.year) return false;
     if (F.prefix) { var pp = p.h + "/" + p.s.join("/") + "/"; if (pp.indexOf(F.prefix + "/") !== 0) return false; }
     if (q) {
-      var hit = p.t.toLowerCase().indexOf(q) >= 0 || p.url.toLowerCase().indexOf(q) >= 0;
+      var hit = p.t.toLowerCase().indexOf(q) >= 0 || p.url.toLowerCase().indexOf(q) >= 0 || (p.d || "").indexOf(q) >= 0;
       if (!hit && S) hit = (S[p.id] || "").indexOf(q) >= 0;
       if (!hit) return false;
     }
@@ -662,17 +662,7 @@ function renderTree() {
     path.forEach(function (s) { node = node.c[s] = node.c[s] || { c: {}, n: 0, k: 0 }; node[field]++; });
   }
   P.forEach(function (p) { add(p.h, p.s, "n"); });
-  var SESS = { sid: 1, phpsessid: 1, sess: 1, session: 1, sessid: 1, rnd: 1, rand: 1, r: 1, nocache: 1, ts: 1, time: 1 };
-  D.known.forEach(function (u) {
-    var m = u.u.match(/^https?:\/\/([^\/:?#]+)[^\/?#]*([^?#]*)(?:\?([^#]*))?/i);
-    if (!m) return;
-    var segs = m[2].split("/").filter(Boolean).slice(0, 3);
-    var keys = {};
-    (m[3] || "").split("&").forEach(function (kv) { var k = kv.split("=")[0].toLowerCase(); if (k && !SESS[k]) keys[k] = 1; });
-    var ks = Object.keys(keys).sort().slice(0, 3);
-    if (ks.length) segs.push("?" + ks.join("&"));
-    add(m[1].toLowerCase(), segs, "k");
-  });
+  D.known.forEach(function (u) { if (u.h) add(u.h, u.s || [], "k"); });
   function html(node, prefix) {
     var keys = Object.keys(node.c).sort(function (a, b) { return (node.c[b].n + node.c[b].k) - (node.c[a].n + node.c[a].k); });
     if (!keys.length) return "";
