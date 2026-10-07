@@ -1,8 +1,11 @@
-# Crawls forum.wapcity.ru from the Wayback Machine, rebuilds the browsable
-# site in docs/ and commits both back. The Wayback index is committed first so
-# the size of the archive is known within minutes; pages are then downloaded
-# in ~40-minute runs, each committing its progress and re-dispatching the
-# workflow until every selected capture is on disk (resumes from the manifest).
+# Crawls forum.wapcity.ru from the Wayback Machine, rebuilds the site in docs/
+# and commits both back.
+#
+# Wayback throttles per IP (a few requests, then ~2 minutes of refused
+# connections), so pages are fetched by several runners in parallel — each
+# has its own IP and takes every N-th capture. A final job merges their
+# downloads, rebuilds the site, commits, and re-dispatches the workflow if
+# captures are still missing (downloads resume from the manifests).
 name: Archive forum.wapcity.ru
 
 on:
@@ -15,6 +18,9 @@ on:
         description: "Re-query the Wayback index"
         type: boolean
         default: false
+      round:
+        description: "Continuation counter (set automatically)"
+        default: "1"
   push:
     branches: [claude/wapcity-forum-archive-eh7ezm]
     paths:
@@ -29,66 +35,107 @@ concurrency:
   group: archive-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  VERSIONS: ${{ inputs.versions || '3' }}
+  SHARDS: "10"
+
 jobs:
-  crawl:
+  index:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    outputs:
+      complete: ${{ steps.status.outputs.complete }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Fetch Wayback index
+      - name: Wayback index
         run: |
-          python3 scripts/fetch_wayback.py --cdx-only \
-            --domain forum.wapcity.ru \
-            --versions "${{ inputs.versions || '3' }}" --assets \
+          python3 scripts/fetch_wayback.py --cdx-only --assets --versions "$VERSIONS" \
             ${{ inputs.refresh_cdx && '--refresh-cdx' || '' }}
-          cat archive/sources.json
-
+      - id: status
+        run: |
+          python3 scripts/fetch_wayback.py --status --assets --versions "$VERSIONS"
+          echo "complete=$(python3 -c "import json;print(json.load(open('archive/sources.json'))['complete'])")" >> "$GITHUB_OUTPUT"
       - name: Commit index
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
-          python3 scripts/build_site.py --archive archive --out docs
-          python3 scripts/extract_forum.py --archive archive --out docs
-          git add archive docs
+          git add archive
           git diff --cached --quiet || { git commit -m "Wayback index for forum.wapcity.ru"; git pull --rebase -X theirs; git push; }
 
-      - name: Fetch pages
+  crawl:
+    needs: index
+    if: needs.index.outputs.complete != 'True'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch shard ${{ matrix.shard }}
         run: |
-          python3 scripts/fetch_wayback.py \
-            --domain forum.wapcity.ru \
-            --versions "${{ inputs.versions || '3' }}" \
-            --assets \
-            --max-minutes 40
+          python3 scripts/fetch_wayback.py --assets --versions "$VERSIONS" \
+            --shard "${{ matrix.shard }}/$SHARDS" --max-minutes 45 --delay 3 --timeout 30 --block-wait 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shard-${{ matrix.shard }}
+          path: |
+            archive/raw
+            archive/manifest.d
+          retention-days: 3
 
+  publish:
+    needs: [index, crawl]
+    if: always() && needs.index.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        if: needs.crawl.result != 'skipped'
+        with:
+          pattern: shard-*
+          path: archive
+          merge-multiple: true
+      - name: Status
+        run: python3 scripts/fetch_wayback.py --status --assets --versions "$VERSIONS"
       - name: Build site
         run: |
           python3 scripts/build_site.py --archive archive --out docs
           python3 scripts/extract_forum.py --archive archive --out docs
-
-      - name: Commit pages
+      - name: Commit
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
           git add archive docs
           if git diff --cached --quiet; then
             echo "nothing new"
           else
-            n=$(python3 -c "import json;d=json.load(open('archive/sources.json'));print(d.get('downloaded',0),'/',d.get('selected',0))")
+            n=$(python3 -c "import json;d=json.load(open('archive/sources.json'));print(d['downloaded'],'/',d['selected'])")
             git commit -m "Archive update: $n captures"
             git pull --rebase -X theirs
             git push
           fi
-
       - name: Continue if incomplete
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          complete=$(python3 -c "import json;print(json.load(open('archive/sources.json')).get('complete'))")
-          if [ "$complete" != "True" ]; then
-            gh workflow run archive.yml --ref "${GITHUB_REF_NAME}" -f versions="${{ inputs.versions || '3' }}"
+          complete=$(python3 -c "import json;print(json.load(open('archive/sources.json'))['complete'])")
+          round=${{ inputs.round || '1' }}
+          if [ "$complete" != "True" ] && [ "$round" -lt 6 ]; then
+            gh workflow run archive.yml --ref "${GITHUB_REF_NAME}" -f versions="$VERSIONS" -f round=$((round + 1))
           fi

@@ -483,19 +483,24 @@ def fmt_date(ts):
 
 
 def load_manifest(archive):
-    path = os.path.join(archive, "manifest.jsonl")
+    """Downloaded captures from manifest.jsonl and the per-runner manifest.d/*.jsonl."""
+    paths = [os.path.join(archive, "manifest.jsonl")]
+    d = os.path.join(archive, "manifest.d")
+    if os.path.isdir(d):
+        paths += [os.path.join(d, f) for f in sorted(os.listdir(d)) if f.endswith(".jsonl")]
     pages, seen = [], set()
-    if not os.path.exists(path):
-        return pages
-    with open(path, encoding="utf-8") as f:
-        for line in f:
-            if not line.strip():
-                continue
-            rec = json.loads(line)
-            if rec["id"] in seen:
-                continue
-            seen.add(rec["id"])
-            pages.append(rec)
+    for path in paths:
+        if not os.path.exists(path):
+            continue
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                rec = json.loads(line)
+                if rec.get("missing") or rec["id"] in seen:
+                    continue
+                seen.add(rec["id"])
+                pages.append(rec)
     return pages
 
 

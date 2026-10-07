@@ -48,7 +48,12 @@ def log(*a):
     print(*a, file=sys.stderr, flush=True)
 
 
-def http_get(url, retries=5, timeout=90):
+HTTP_TIMEOUT = 30
+BLOCK_WAIT = 30
+
+
+def http_get(url, retries=5, timeout=None):
+    timeout = timeout or HTTP_TIMEOUT
     delay = 2
     for attempt in range(retries):
         try:
@@ -69,7 +74,7 @@ def http_get(url, retries=5, timeout=90):
                 raise
             # Over ~15 requests/minute Wayback stops accepting connections for a
             # minute or two; short retries only extend the block.
-            wait = 60 if "refused" in str(e) or "timed out" in str(e) else delay
+            wait = BLOCK_WAIT if "refused" in str(e) or "timed out" in str(e) else delay
             log(f"  {e}, retry in {wait}s")
             time.sleep(wait)
         delay *= 2
@@ -158,9 +163,17 @@ def main():
     ap.add_argument("--wayback-base", default="https://web.archive.org")
     ap.add_argument("--cdx-only", action="store_true", help="only fetch the index, download nothing")
     ap.add_argument("--refresh-cdx", action="store_true", help="re-query the index even if archive/cdx/ has it")
+    ap.add_argument("--shard", default="", metavar="K/N",
+                    help="download only every N-th capture starting at K (parallel runners, one IP each)")
+    ap.add_argument("--status", action="store_true", help="only report how much of the selection is on disk")
+    ap.add_argument("--timeout", type=float, default=30, help="seconds per request")
+    ap.add_argument("--block-wait", type=float, default=30,
+                    help="pause after a refused / timed-out connection (Wayback's per-IP throttle)")
     ap.add_argument("--max-minutes", type=float, default=0,
                     help="stop downloading after this long (rerun to continue); sources.json records completeness")
     args = ap.parse_args()
+    global HTTP_TIMEOUT, BLOCK_WAIT
+    HTTP_TIMEOUT, BLOCK_WAIT = args.timeout, args.block_wait
     domains = args.domain or ["forum.wapcity.ru"]
 
     os.makedirs(os.path.join(args.out, "cdx"), exist_ok=True)
@@ -202,27 +215,37 @@ def main():
         with open(os.path.join(args.out, "sources.json"), "w", encoding="utf-8") as f:
             json.dump(sources_doc, f, ensure_ascii=False, indent=2)
 
+    done, missing = load_done(args.out)
+    chosen_ids = [capture_id(c) for c in chosen]
+
+    def status():
+        have = sum(1 for i in chosen_ids if i in done)
+        gone = sum(1 for i in chosen_ids if i in missing and i not in done)
+        sources_doc.update({"downloaded": have, "missingInWayback": gone,
+                            "remaining": len(chosen_ids) - have - gone,
+                            "complete": have + gone >= len(chosen_ids)})
+
+    status()
     write_sources()
-    if args.cdx_only:
+    if args.cdx_only or args.status:
+        log(f"status: {sources_doc['downloaded']} downloaded, {sources_doc['missingInWayback']} missing in Wayback, "
+            f"{sources_doc['remaining']} remaining")
         return
 
-    manifest_path = os.path.join(args.out, "manifest.jsonl")
-    done = set()
-    if os.path.exists(manifest_path):
-        with open(manifest_path, encoding="utf-8") as f:
-            for line in f:
-                if line.strip():
-                    done.add(json.loads(line)["id"])
+    k, n_shards = (int(x) for x in args.shard.split("/")) if args.shard else (0, 1)
+    os.makedirs(os.path.join(args.out, "manifest.d"), exist_ok=True)
+    manifest_path = os.path.join(args.out, "manifest.d", f"shard-{k}.jsonl") if args.shard \
+        else os.path.join(args.out, "manifest.jsonl")
 
-    n, stopped_early, failed = 0, False, 0
+    n, failed = 0, 0
     with open(manifest_path, "a", encoding="utf-8") as mf:
         for i, c in enumerate(chosen, 1):
-            cid = capture_id(c)
-            if cid in done:
+            cid = chosen_ids[i - 1]
+            if (i - 1) % n_shards != k or cid in done or cid in missing:
                 continue
             if (args.limit and n >= args.limit) or \
                     (args.max_minutes and time.monotonic() - started > args.max_minutes * 60):
-                stopped_early = True
+                log("time budget reached, rerun to continue")
                 break
             mt = (c["mimetype"] or "").split(";")[0].strip().lower()
             ext = EXT_BY_TYPE.get(mt, "bin" if not mt.startswith(TEXT_TYPES) else "html")
@@ -231,13 +254,18 @@ def main():
             url = f"{args.wayback_base}/web/{c['timestamp']}id_/{c['original']}"
             log(f"[{i}/{len(chosen)}] {c['timestamp']} {c['original']}")
             try:
-                status, ctype, body = http_get(url)
+                status_code, ctype, body = http_get(url)
             except Exception as e:  # keep going; a rerun retries the failures
                 log(f"  FAILED: {e}")
                 failed += 1
                 continue
-            if status != 200:
-                log(f"  skipped: HTTP {status}")
+            if status_code != 200:
+                # the index lists it but Wayback cannot serve it: remember, don't retry forever
+                log(f"  missing in Wayback: HTTP {status_code}")
+                mf.write(json.dumps({"id": cid, "url": c["original"], "timestamp": c["timestamp"],
+                                     "missing": status_code}) + "\n")
+                mf.flush()
+                missing.add(cid)
                 continue
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "wb") as f:
@@ -247,13 +275,37 @@ def main():
                    "file": rel.replace(os.sep, "/"), "size": len(body)}
             mf.write(json.dumps(rec, ensure_ascii=False) + "\n")
             mf.flush()
+            done.add(cid)
             n += 1
             time.sleep(args.delay)
-    sources_doc["downloaded"] = len(done) + n
-    sources_doc["complete"] = not stopped_early
-    sources_doc["failedLastRun"] = failed
-    write_sources()
-    log(f"done: {n} new files" + (" (time budget reached, rerun to continue)" if stopped_early else ""))
+    if not args.shard:
+        status()
+        sources_doc["failedLastRun"] = failed
+        write_sources()
+    log(f"done: {n} new files, {failed} failed")
+
+
+def manifest_files(out):
+    files = [os.path.join(out, "manifest.jsonl")]
+    d = os.path.join(out, "manifest.d")
+    if os.path.isdir(d):
+        files += [os.path.join(d, f) for f in sorted(os.listdir(d)) if f.endswith(".jsonl")]
+    return [f for f in files if os.path.exists(f)]
+
+
+def load_done(out):
+    done, missing = set(), set()
+    for path in manifest_files(out):
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                rec = json.loads(line)
+                if rec.get("missing"):
+                    missing.add(rec["id"])
+                elif os.path.exists(os.path.join(out, rec["file"])):
+                    done.add(rec["id"])
+    return done, missing
 
 
 if __name__ == "__main__":
