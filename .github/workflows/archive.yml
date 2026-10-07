@@ -1,7 +1,8 @@
 # Crawls forum.wapcity.ru from the Wayback Machine, rebuilds the browsable
-# site in docs/ and commits both back. Long crawls are split into runs that
-# each stop before GitHub's job time limit and re-dispatch the workflow until
-# every selected capture is downloaded (downloads resume from the manifest).
+# site in docs/ and commits both back. The Wayback index is committed first so
+# the size of the archive is known within minutes; pages are then downloaded
+# in ~40-minute runs, each committing its progress and re-dispatching the
+# workflow until every selected capture is on disk (resumes from the manifest).
 name: Archive forum.wapcity.ru
 
 on:
@@ -31,29 +32,44 @@ concurrency:
 jobs:
   crawl:
     runs-on: ubuntu-latest
-    timeout-minutes: 340
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Fetch from Wayback Machine
+      - name: Fetch Wayback index
+        run: |
+          python3 scripts/fetch_wayback.py --cdx-only \
+            --domain forum.wapcity.ru \
+            --versions "${{ inputs.versions || '3' }}" \
+            ${{ inputs.refresh_cdx && '--refresh-cdx' || '' }}
+          cat archive/sources.json
+
+      - name: Commit index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          python3 scripts/build_site.py --archive archive --out docs
+          git add archive docs
+          git diff --cached --quiet || { git commit -m "Wayback index for forum.wapcity.ru"; git push; }
+
+      - name: Fetch pages
         run: |
           python3 scripts/fetch_wayback.py \
             --domain forum.wapcity.ru \
             --versions "${{ inputs.versions || '3' }}" \
-            --max-minutes 300 \
-            ${{ inputs.refresh_cdx && '--refresh-cdx' || '' }}
+            --max-minutes 40
 
       - name: Build site
         run: python3 scripts/build_site.py --archive archive --out docs
 
-      - name: Commit
+      - name: Commit pages
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
           git add archive docs
           if git diff --cached --quiet; then
             echo "nothing new"
