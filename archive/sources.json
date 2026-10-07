@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-10-07T13:15:04+00:00",
+  "fetchedAt": "2026-10-07T13:57:00+00:00",
   "versionsPerUrl": 3,
   "selected": 689,
   "complete": false,
@@ -13,7 +13,5 @@
       "first": "20060815032103",
       "last": "20250123162839"
     }
-  ],
-  "downloaded": 59,
-  "failedLastRun": 10
+  ]
 }
