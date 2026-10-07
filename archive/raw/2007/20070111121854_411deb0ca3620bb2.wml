@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+
+
+<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">
+<wml>
+<card id="index" title="wapForum">
+<img src="/images/logo.gif" alt="logo" /><br />
+<b>wapForum</b>
+<hr />
+<form name="auth" method="post" action="/auth;jsessionid=5325B71237373773CBB7E65DCA2AD1AA">
+Ім’я: <br />
+<input type="text" name="n" /><br />
+Пароль:<br />
+<input type="password" name="p" /><br />
+<input type="submit" name="Submit" value="Вхід" />
+</form><br />
+<a href="/auth;jsessionid=5325B71237373773CBB7E65DCA2AD1AA">Вхід для читання</a><br />
+<a href="/signup;jsessionid=5325B71237373773CBB7E65DCA2AD1AA">Реєстрація</a>
+<hr />
+<img src="/images/3.gif" border="0" alt="smile" width="12" height="8" />&#160;<a href="/info;jsessionid=5325B71237373773CBB7E65DCA2AD1AA?page=contact_dj">Зворотний зв’язок</a><br />
+
+<p><br /><a href="http://wap.djuice.com.ua/">:Головне меню</a></p>
+<p>© "Мобидо.ру" 2005</p>
+</card>
+</wml>
+
+

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">
+<wml>
+<card id="index" title="wapForum">
+
+<b>ОБРАТНАЯ СВЯЗЬ</b><br />
+Разработка и поддержка сайта осуществляется компанией "Мобитех" (торговая марка "Мобидо.ру"). В случае возникновения любых вопросов и пожеланий по улучшению работы сайта, Вы можете связаться с нами по<br />
+тел.:<a href="wtai://wp/mc;+78612538054">+78612538054</a><br />
+email:mobido@mobido.ru<br />
+<form name="cont" id="cont" method="post" action="/contacts;jsessionid=4283DB7CF3E948BDC94E948AE5C5D3AD">
+Тема сообщения:<br />
+<input name="tema" type="text" id="tema" /><br />
+Текст сообщения:<br />
+<input name="text" type="text" id="text" value="" /><br />
+Телефон для обратной связи (в формате 8-префикс-номер телефона, например, 89161234567 или 80951234567)<br />
+<input name="phone" type="text" id="phone" /><br />
+<input type="submit" name="Submit" value="Отправить" />
+</form>
+
+
+
+
+
+
+<a href="/index.jsp">Назад</a><br/><a href="/index.jsp">На Главную</a><br/>
+
+<p><a href="http://foto.wapcity.ru">Мобильные Фото Альбомы</a></p>
+
+
+
+
+
+</card>
+</wml>
+
+
+
+
