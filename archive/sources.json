@@ -1,8 +1,8 @@
 {
-  "fetchedAt": "2026-10-07T16:00:08+00:00",
+  "fetchedAt": "2026-10-07T16:00:42+00:00",
   "versionsPerUrl": 3,
   "selected": 703,
-  "complete": false,
+  "complete": true,
   "sources": [
     {
       "source": "Wayback Machine (web.archive.org)",
@@ -14,7 +14,7 @@
       "last": "20250123162839"
     }
   ],
-  "downloaded": 699,
+  "downloaded": 702,
   "missingInWayback": 1,
-  "remaining": 3
+  "remaining": 0
 }
